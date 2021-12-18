@@ -1,0 +1,7 @@
+.navigation {
+  display: flex;
+  align-items: center;
+  column-gap: 24px;
+  justify-content: flex-end;
+  grid-column: -1/-3;
+}

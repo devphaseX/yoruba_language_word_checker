@@ -1,0 +1,25 @@
+.toggleIndicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-color: var(--dark-grey);
+  border-radius: 50%;
+  position: relative;
+  z-index: 20;
+}
+
+.outerToggler {
+  width: 28px;
+  height: 18px;
+  background-color: var(--light-grey);
+  display: inline-flex;
+  align-items: center;
+  border-radius: 10px;
+  padding-inline: 4px;
+  cursor: pointer;
+}
+
+.outerToggler > input:checked + .toggleIndicator {
+  background-color: var(--primary-colour);
+  transform: translateX(8px);
+}

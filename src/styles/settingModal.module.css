@@ -1,0 +1,91 @@
+.settingModalContainer {
+  background: transparent;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.SettingModalBg {
+  background-color: rgba(165, 165, 165, 0.4);
+  backdrop-filter: blur(5px);
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 2000;
+  cursor: pointer;
+}
+
+.settingControls {
+  width: 444px;
+}
+
+.open {
+  display: flex;
+}
+
+.close {
+  display: none;
+}
+
+.setting {
+  background-color: #fff;
+  position: relative;
+  z-index: 3000;
+  display: inline-block;
+  padding: 40px;
+  border-radius: 20px;
+}
+
+.settingTitle {
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 28px;
+  margin-bottom: 48px;
+}
+
+.settingTypeName {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--light-grey);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.searchMode > .mode {
+  margin-bottom: 48px;
+}
+
+.searchMode > .mode label,
+.mininally_setting label {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.searchMode > .mode > div,
+.mininally_setting {
+  display: flex;
+  justify-content: space-between;
+}
+
+.searchMode > .mode > div:not(:last-child) {
+  margin-bottom: 40px;
+}
+
+.fileInputUrl {
+  background-color: var(--light-grey);
+  width: 444px;
+  height: 64px;
+  border: none;
+  margin-top: 40px;
+  padding-inline: 24px;
+}
+
+.fileInputUrl:focus {
+  border: none;
+  outline: none;
+}

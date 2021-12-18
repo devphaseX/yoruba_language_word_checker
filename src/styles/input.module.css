@@ -1,0 +1,51 @@
+.input {
+  height: 88px;
+  border: none;
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  padding-right: 214px;
+  padding-left: 68px;
+  font-size: 20px;
+  line-height: 24px;
+  background-color: transparent;
+}
+
+.input:focus {
+  border: none;
+  outline: none;
+}
+
+.outterInputBox {
+  width: 824px;
+  box-shadow: 0 16px 32px rgba(211, 211, 211, 0.2),
+    0 -2px 4px rgba(211, 211, 211, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.innerInputBox {
+  position: relative;
+  overflow: hidden;
+}
+
+.searchBtnBox {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+
+.searchIconBox {
+  position: absolute;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.showSuggests {
+  display: block;
+}
+
+.hideSuggests {
+  display: none;
+}

@@ -1,0 +1,24 @@
+.resultPage {
+  grid-column: 2/-2;
+  padding-bottom: 180px;
+}
+
+.result_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.resultBody {
+  margin-top: 68px;
+}
+
+.searchedWord {
+  font-size: 56px;
+  line-height: 64px;
+  font-weight: normal;
+}
+
+.searchTag {
+  color: var(--light-grey);
+}
