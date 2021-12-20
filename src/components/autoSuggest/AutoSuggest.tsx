@@ -1,44 +1,83 @@
 import { FC } from 'react';
-import { SuggestResult } from '../types';
+import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
+import style from '../../styles/suggests.module.css';
+import {
+  RealTimeSuggest,
+  SuggestDetail,
+  GlobalState,
+} from '../../App';
+import useGlobalDispatch from '../../hooks/useGlobalDispatch';
+import { useNavigate } from 'react-router-dom';
+import { PendState } from '../../store';
 
 interface AutoSuggestProps {
-  isSuggestAllowed: boolean;
   inputId: string;
-  showClass: string;
-  hideClass: string;
-  suggests: Array<SuggestResult> | null;
+  isVisible: boolean;
+  suggests: Array<RealTimeSuggest> | null;
 }
 
 function ascendingOrder(a: number, b: number) {
   return a - b;
 }
 const AutoSuggest: FC<AutoSuggestProps> = ({
-  isSuggestAllowed,
   inputId,
-  showClass,
-  hideClass,
+  isVisible,
   suggests,
 }) => {
   const className = [
-    isSuggestAllowed && suggests && suggests.length
-      ? showClass
-      : hideClass,
-    'suggest',
+    style[isVisible ? 'openSuggests' : 'closeSuggests'],
+    style.suggests,
   ].join(' ');
+
+  const dispatch = useGlobalDispatch();
+  const navigate = useNavigate();
   return (
     <div className={className}>
-      <h4 className="suggested_word_title">
+      <h4 className={style.suggested_word_title}>
         Suggested words
       </h4>
-      <datalist id={inputId} style={{ display: 'block' }}>
+      <datalist id={inputId} className={style.suggestBox}>
         {suggests!
-          .sort((a, b) => ascendingOrder(a[1], b[1]))
-          .map(([word], i) => (
-            <option
-              value={word}
-              label={word}
+          .sort((a, b) =>
+            ascendingOrder(a.probability, b.probability)
+          )
+          .map(({ word, _type }, i) => (
+            <div
               key={word + i}
-            ></option>
+              className={style.suggest}
+              onClick={() => {
+                dispatch({
+                  searchResult: {
+                    '[[_data_]]': { _type, word },
+                  },
+                  history: {
+                    '[[_data_]]': {
+                      pasts: [{ _type, word }],
+                      lastSearch: { _type, word },
+                    },
+                    mapper(prev, cur) {
+                      return {
+                        pasts: [
+                          ...(prev.pasts ?? []),
+                          ...(cur.pasts ?? []),
+                        ],
+                        lastSearch: cur.lastSearch,
+                      };
+                    },
+                  },
+                  isTyping: false,
+                });
+                navigate('/results');
+              }}
+            >
+              <div className={style.suggestInner}>
+                <ArrowUpIcon />
+                <option value={word} label={word}></option>
+              </div>
+              <span className={style.clickTag}>
+                click on to select
+              </span>
+            </div>
           ))}
       </datalist>
     </div>

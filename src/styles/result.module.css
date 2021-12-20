@@ -17,8 +17,21 @@
   font-size: 56px;
   line-height: 64px;
   font-weight: normal;
+  display: inline-block;
+  align-items: center;
+  margin-bottom: 88px;
 }
 
 .searchTag {
   color: var(--light-grey);
+  font-weight: 48px;
+  margin-left: 40px;
+}
+
+.searchTag span {
+  text-transform: capitalize;
+}
+
+.iconBox {
+  cursor: pointer;
 }

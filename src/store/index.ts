@@ -1,10 +1,26 @@
-import { partialDeepStateUpdate } from '../components/utils';
+import {
+  partialDeepStateUpdate,
+  StateReplacement,
+} from '../components/utils';
 
 type QueueDataLoader<State = any> = [
   (state: State) => void,
   [Array<keyof State>, Partial<State> | null]
 ];
 
+export type StateMapper<State> = (
+  prevState: State,
+  newState: DeepPartial<State>
+) => any;
+
+export type PendState<
+  State,
+  K extends keyof State = keyof State
+> = Partial<{
+  [stateKey in K]:
+    | StateMapper<State[stateKey]>
+    | PendState<State[stateKey]>;
+}>;
 export type _PickOwn<Own, Keys> = Pick<
   Own,
   Extract<Keys, keyof Own>
@@ -129,17 +145,20 @@ export function createStore<State extends object>(
   }
 
   function setStoreState(
-    updatedStatePart: DeepPartial<State>,
-    allowEmptyState?: boolean
+    updatedStatePart: StateReplacement<State>,
+    storeSetOption?: {
+      allowEmptyState?: boolean;
+      pendState?: PendState<State>;
+    }
   ) {
     if (
       Object.keys(updatedStatePart).length ||
-      allowEmptyState
+      (storeSetOption && storeSetOption.allowEmptyState)
     ) {
       _rootStore = partialDeepStateUpdate(
         _rootStore,
         updatedStatePart
-      );
+      ) as State;
 
       _isUpdatePublish = false;
       recentUpdated = updatedStatePart as any;

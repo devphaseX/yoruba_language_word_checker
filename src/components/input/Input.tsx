@@ -7,10 +7,17 @@ import AutoSuggest from '../autoSuggest/AutoSuggest';
 
 const Input = () => {
   const dispatch = useGlobalDispatch();
-  const { isTyping } = useGlobalState(['isTyping']);
-
+  const { isTyping, suggests } = useGlobalState([
+    'isTyping',
+    'suggests',
+  ]);
   return (
-    <div className={style.outterInputBox}>
+    <div
+      className={style.outterInputBox}
+      onMouseLeave={() => {
+        dispatch({ isTyping: false });
+      }}
+    >
       <div className={style.innerInputBox}>
         <span className={style.searchIconBox}>
           <SearchIcon />
@@ -22,26 +29,19 @@ const Input = () => {
           onFocus={() => {
             dispatch({ isTyping: true });
           }}
-          onBlur={() => {
-            dispatch({ isTyping: false });
-          }}
         />
 
         <span className={style.searchBtnBox}>
           <PrimaryButton>Search</PrimaryButton>
         </span>
       </div>
-      <AutoSuggest
-        isSuggestAllowed={isTyping}
-        inputId="word_search_input"
-        showClass={style.showSuggests}
-        hideClass={style.hideSuggests}
-        suggests={[
-          ['adeolu', Math.random()],
-          ['Omolabake', Math.random()],
-          ['Ishola', Math.random()],
-        ]}
-      />
+      {suggests.length ? (
+        <AutoSuggest
+          inputId="word_search_input"
+          isVisible={isTyping}
+          suggests={suggests}
+        />
+      ) : null}
     </div>
   );
 };

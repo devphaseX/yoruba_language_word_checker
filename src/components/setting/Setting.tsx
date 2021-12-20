@@ -59,6 +59,7 @@ const Setting = () => {
             : config;
 
         persistToLocalStorage(
+          //@ts-ignore
           partialDeepStateUpdate(appConfig, newConfig)
         );
       } else if (forceRemove) {

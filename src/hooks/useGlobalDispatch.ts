@@ -1,5 +1,6 @@
 import { useCallback, useContext } from 'react';
 import { AppContext } from '../App';
+import { DeepPartial, PendState } from '../store';
 import useLocalStorage, {
   APP_HISTORY_KEY,
 } from './useLocalStorage';
@@ -11,11 +12,22 @@ const useGlobalDispatch = () => {
   type StoreDispatcherParams = Parameters<
     typeof store.setStoreState
   >;
+
+  type StoreState = ReturnType<typeof store.getStoreState>;
   type StoreDispatcher = (
     state: StoreDispatcherParams[0],
     options?: Partial<{
       allowEmpty: StoreDispatcherParams[1];
-      persistToLocal: boolean;
+      persistToLocal:
+        | boolean
+        | {
+            getPersistState: (
+              state: StoreState
+            ) => DeepPartial<StoreState>;
+          };
+      cacheAndSpreadOldState?: PendState<
+        ReturnType<typeof store.getStoreState>
+      >;
     }>
   ) => void;
 
@@ -23,7 +35,17 @@ const useGlobalDispatch = () => {
     ((state, options) => {
       store.setStoreState(state);
       if (options && options.persistToLocal) {
-        persistLocalHistory(store.getStoreState().history);
+        if (typeof options.persistToLocal !== 'boolean') {
+          persistLocalHistory(
+            options.persistToLocal.getPersistState(
+              store.getStoreState()
+            )
+          );
+        } else {
+          persistLocalHistory(
+            store.getStoreState().history
+          );
+        }
       }
     }) as StoreDispatcher,
     [store]

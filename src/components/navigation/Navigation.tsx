@@ -13,7 +13,13 @@ const Navigation = () => {
       >
         <SettingIcon />
       </span>
-      <TertiaryButton>History</TertiaryButton>
+      <TertiaryButton
+        onClick={() => {
+          dispatcher({ isHistoryOpen: true });
+        }}
+      >
+        History
+      </TertiaryButton>
     </nav>
   );
 };

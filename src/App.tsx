@@ -21,12 +21,14 @@ export interface AppConfig {
 }
 
 export interface GlobalState {
+  isHistoryOpen: boolean;
   isModalOpen: boolean;
   appConfig: AppConfig;
   isTyping: boolean;
   searchResult: null | SuggestDetail;
   searchedWord?: string;
   history: SearchHistory;
+  suggests: Array<RealTimeSuggest>;
 }
 
 export type ValidSuggest = { _type: '_valid' };
@@ -34,6 +36,11 @@ export type InvalidSuggest = {
   _type: '_invalid';
   suggests: Array<SuggestWord>;
 };
+
+export interface RealTimeSuggest extends ValidSuggest {
+  word: string;
+  probability: number;
+}
 
 export type SuggestDetail = (
   | InvalidSuggest
@@ -46,6 +53,7 @@ export interface SearchHistory {
 }
 
 const store = createStore<GlobalState>({
+  isHistoryOpen: false,
   isModalOpen: false,
   appConfig: {
     searchMode: { mode: { _type: 'light', status: true } },
@@ -57,7 +65,34 @@ const store = createStore<GlobalState>({
     word: 'Adeniyi',
     suggests: [['Adeoluwa', Math.random()]],
   },
-  history: { lastSearch: null, pasts: null },
+  history: {
+    lastSearch: null,
+    pasts: [
+      { _type: '_valid', word: 'adeniyi' },
+      {
+        _type: '_invalid',
+        word: 'ad',
+        suggests: [['adeniyi', Math.random()]],
+      },
+    ],
+  },
+  suggests: [
+    {
+      _type: '_valid',
+      word: 'adeolu',
+      probability: Math.random(),
+    },
+    {
+      _type: '_valid',
+      word: 'Omolabake',
+      probability: Math.random(),
+    },
+    {
+      _type: '_valid',
+      word: 'Ishola',
+      probability: Math.random(),
+    },
+  ],
 });
 
 export type InferStoreState = typeof store;

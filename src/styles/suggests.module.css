@@ -1,0 +1,43 @@
+.suggests {
+  padding-inline: 32px 16px;
+  padding-bottom: 32px;
+}
+
+.suggests datalist {
+  display: block;
+}
+
+.suggested_word_title {
+  text-transform: uppercase;
+  font-size: 14px;
+  line-height: 20px;
+  margin-block: 32px 40px;
+  color: var(--light-grey);
+}
+
+.suggestBox > div {
+  margin-bottom: 20px;
+  text-transform: capitalize;
+}
+
+.suggest,
+.suggestInner {
+  display: flex;
+  justify-content: space-between;
+}
+
+.suggestInner option {
+  margin-left: 24px;
+}
+
+.clickTag {
+  text-transform: uppercase;
+}
+
+.openSuggests {
+  display: block;
+}
+
+.closeSuggests {
+  display: none;
+}

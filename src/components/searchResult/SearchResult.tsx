@@ -2,6 +2,8 @@ import { FC } from 'react';
 import useGlobalState from '../../hooks/useGlobalState';
 import style from '../../styles/searchResult.module.css';
 import { InvalidSuggest, SuggestDetail } from '../../App';
+import CheckMarkIcon from '../UI/Icons/CheckMarkIcon';
+import CancelIcon from '../UI/Icons/CancelIcon';
 
 const SearchResult: FC = () => {
   const { searchResult: searchResultData } = useGlobalState(
@@ -34,7 +36,8 @@ const FoundResult: FC<FoundResultProps> = ({
       </h3>
       <div>
         <h2 className={style.searchKeyWord}>
-          {searchedWord.word}
+          <CheckMarkIcon />
+          <span>{searchedWord.word}</span>
         </h2>
       </div>
     </div>
@@ -58,7 +61,8 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
       </h3>
       <div>
         <h2 className={style.searchKeyWord}>
-          {searchedWord.word}
+          <CancelIcon />
+          <span>{searchedWord.word}</span>
         </h2>
       </div>
       <div className={style.suggestion_board}>

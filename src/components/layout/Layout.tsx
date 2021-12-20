@@ -10,6 +10,8 @@ import useLocalStorage, {
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import { AppConfig, SearchHistory } from '../../App';
 import useGlobalState from '../../hooks/useGlobalState';
+import HistoryArchieve from '../historyArchieve/historyArchieve';
+import CopyRight from '../copyRight/copyRight';
 
 const Layout: FC = ({ children }) => {
   const location = useLocation();
@@ -29,14 +31,15 @@ const Layout: FC = ({ children }) => {
   } = useGlobalState(['appConfig', 'history']);
 
   useEffect(() => {
-    if (historyLocalState && configLocalSave) {
+    if (historyLocalState?.pasts && configLocalSave) {
       dispatch({
-        history: historyLocalState,
+        history: { '[[_data_]]': historyLocalState },
         appConfig: configLocalSave,
       });
-    } else if (historyLocalState) {
+    }
+    if (historyLocalState?.pasts) {
       dispatch({
-        history: historyLocalState,
+        history: { '[[_data_]]': historyLocalState },
       });
     } else if (configLocalSave) {
       dispatch({ appConfig: configLocalSave });
@@ -52,6 +55,7 @@ const Layout: FC = ({ children }) => {
   return (
     <div className="layout">
       <Modal />
+      <HistoryArchieve />
       {location.pathname.startsWith('/results') ? (
         children
       ) : (
@@ -63,6 +67,7 @@ const Layout: FC = ({ children }) => {
           {children}
         </>
       )}
+      <CopyRight />
     </div>
   );
 };
