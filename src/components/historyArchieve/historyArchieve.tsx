@@ -53,7 +53,6 @@ const HistoryArchieve: FC = () => {
                       {
                         persistToLocal: {
                           getPersistState: (state) => {
-                            debugger;
                             return {
                               history: state.history,
                             };
