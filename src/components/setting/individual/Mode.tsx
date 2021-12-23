@@ -3,7 +3,7 @@ import { SearchMode } from '../../../App';
 import ToggleIcon from '../../UI/Icons/ToggleIcon';
 import { DispatchWithLocalFunction } from '../Setting';
 
-interface ModeProps {
+export interface ModeProps {
   checked: boolean;
   id: string;
   name: string;
@@ -28,7 +28,12 @@ const Mode = (
     dispatcher: dispatch,
   }) {
     return (
-      <div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
+      >
         <label htmlFor={id}>{label}</label>
         <ToggleIcon
           name={name}

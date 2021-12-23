@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const useLocalStorage = <Data>(dataId: string) => {
   const [state, setState] = useState<Data | null>();
 
-  function persist(data: Data) {
-    window.localStorage.setItem(
-      dataId,
-      JSON.stringify(data)
-    );
-  }
+  const persist = useCallback(
+    function persist(data: Data) {
+      window.localStorage.setItem(
+        dataId,
+        JSON.stringify(data)
+      );
+    },
+    [window]
+  );
 
-  function remove() {
-    window.localStorage.removeItem(dataId);
-  }
+  const remove = useCallback(
+    function remove() {
+      window.localStorage.removeItem(dataId);
+    },
+    [window]
+  );
+
   useEffect(() => {
     try {
       const localData = JSON.parse(

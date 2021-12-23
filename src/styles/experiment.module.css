@@ -1,0 +1,13 @@
+.experimentalFeature {
+  display: flex;
+  flex-direction: column;
+}
+
+.experimentalLabel {
+  background-color: var(--tertiary-button-bg);
+  color: var(--red);
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 12px;
+}

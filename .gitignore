@@ -11,6 +11,9 @@
 # production
 /build
 
+# non used hooks
+/src/hooks/useForceRefresh.ts
+
 # misc
 .DS_Store
 .env.local

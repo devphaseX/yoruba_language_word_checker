@@ -1,12 +1,11 @@
 import { FC } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import useGlobalState from '../../hooks/useGlobalState';
 import style from '../../styles/history.module.css';
 import TertiaryButton from '../UI/button/TertiaryButton';
 import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
 import BackArrow from '../UI/Icons/BackArrow';
-import MarkArrow from '../UI/Icons/MarkArrow';
 
 const HistoryArchieve: FC = () => {
   const { isHistoryOpen, history } = useGlobalState([

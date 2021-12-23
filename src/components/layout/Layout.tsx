@@ -12,9 +12,13 @@ import { AppConfig, SearchHistory } from '../../App';
 import useGlobalState from '../../hooks/useGlobalState';
 import HistoryArchieve from '../historyArchieve/historyArchieve';
 import CopyRight from '../copyRight/copyRight';
+import { useNavigate } from 'react-router-dom';
+import { isPathEligibleForRevalidate } from '../utils';
+import { RoutePath } from '../utils/index';
 
 const Layout: FC = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const { state: configLocalSave } =
     useLocalStorage<AppConfig>(APP_CONFIG_KEY);
@@ -31,6 +35,11 @@ const Layout: FC = ({ children }) => {
   } = useGlobalState(['appConfig', 'history']);
 
   useEffect(() => {
+    const routePaths: Array<RoutePath> = [
+      { path: '/', exact: true },
+      { path: '/results', exact: true },
+    ];
+
     if (historyLocalState?.pasts && configLocalSave) {
       dispatch({
         history: { '[[_data_]]': historyLocalState },
@@ -43,6 +52,15 @@ const Layout: FC = ({ children }) => {
       });
     } else if (configLocalSave) {
       dispatch({ appConfig: configLocalSave });
+    }
+
+    if (
+      isPathEligibleForRevalidate(
+        location.pathname,
+        routePaths
+      )
+    ) {
+      navigate('/');
     }
 
     return () => {

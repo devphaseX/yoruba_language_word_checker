@@ -1,43 +1,16 @@
 import {
   partialDeepStateUpdate,
   StateReplacement,
+  take,
+  generateSudoId,
 } from '../components/utils';
-
-type QueueDataLoader<State = any> = [
-  (state: State) => void,
-  [Array<keyof State>, Partial<State> | null]
-];
-
-export type StateMapper<State> = (
-  prevState: State,
-  newState: DeepPartial<State>
-) => any;
-
-export type PendState<
-  State,
-  K extends keyof State = keyof State
-> = Partial<{
-  [stateKey in K]:
-    | StateMapper<State[stateKey]>
-    | PendState<State[stateKey]>;
-}>;
-export type _PickOwn<Own, Keys> = Pick<
-  Own,
-  Extract<Keys, keyof Own>
->;
-type QueueIndexer = Set<string>;
-type _SelectiveSubscribers<State> = Map<
-  keyof State,
-  QueueIndexer
->;
-type _CallPriorityQueue = Map<string, QueueDataLoader>;
-
-export type DeepPartial<State> = {
-  [K in keyof State]?: DeepPartial<State[K]>;
-};
-function generateSudoId(): string {
-  return Math.random().toString(32).slice(2);
-}
+import type { _PickOwn } from '../components/utils/globalTypes';
+import type {
+  PendState,
+  QueueDataLoader,
+  _CallPriorityQueue,
+  _SelectiveSubscribers,
+} from './type';
 
 export function createStore<State extends object>(
   _initialState: State
@@ -80,18 +53,6 @@ export function createStore<State extends object>(
       parts as Array<keyof State>,
       getStoreState()
     );
-  }
-
-  function take<State, Parts extends Array<keyof State>>(
-    parts: Parts,
-    state: State
-  ): Pick<State, Parts[number]> {
-    const pickedState = {} as any;
-    parts.forEach((key) => {
-      pickedState[key] = state[key];
-    });
-
-    return pickedState;
   }
 
   function prioprityBaseEnqueue(
@@ -175,7 +136,7 @@ export function createStore<State extends object>(
       cookState(
         mutateParts,
         (accessId, [subscriber, dataPreload]) => {
-          _priorityCbQueue.set(accessId as any, [
+          _priorityCbQueue.set(accessId as string, [
             subscriber,
             dataPreload,
           ]);

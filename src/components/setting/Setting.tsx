@@ -50,7 +50,7 @@ const Setting = () => {
         (prevAllowedPersist || justAllowedPersist) &&
         !forceRemove
       ) {
-        const newConfig =
+        const changedConfig =
           justAllowedPersist && !prevAllowedPersist
             ? {
                 ...config,
@@ -58,10 +58,12 @@ const Setting = () => {
               }
             : config;
 
-        persistToLocalStorage(
-          //@ts-ignore
-          partialDeepStateUpdate(appConfig, newConfig)
+        const newAppConfig = partialDeepStateUpdate(
+          appConfig,
+          changedConfig
         );
+
+        persistToLocalStorage(newAppConfig);
       } else if (forceRemove) {
         removeLocalConfig();
         removeLocalHistory();

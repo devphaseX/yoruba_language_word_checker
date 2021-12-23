@@ -8,96 +8,92 @@ export type StateReplacement<State> = Partial<{
     | StateReplacement<State[K]>;
 }>;
 
-export function partialDeepStateUpdate<State>(
-  target: State | State[keyof State],
-  source: StateReplacement<State>
-) {
-  if (typeof source !== 'object' || source === null) {
-    return source;
-  }
-
-  const stateUpdateKeys = Reflect.ownKeys(source) as Array<
-    keyof State
-  >;
-
-  const immutableState = Array.isArray(target)
-    ? [...target]
-    : { ...target };
-
-  stateUpdateKeys.forEach((key) => {
-    let sourceValue = source[key];
-
-    if (
-      sourceValue &&
-      typeof sourceValue === 'object' &&
-      '[[_data_]]' in sourceValue
-    ) {
-      const { '[[_data_]]': data, mapper } =
-        sourceValue as DataMap<State, typeof key>;
-      if (mapper) {
-        //@ts-ignore
-        immutableState[key] = mapper(target[key], data);
-      } else {
-        //@ts-ignore
-        immutableState[key] = data;
-      }
-    } else {
-      //@ts-ignore
-      immutableState[key] = partialDeepStateUpdate(
-        //@ts-ignore
-        target[key],
-        //@ts-ignore
-        source[key]
-      );
-    }
-  });
-
-  return immutableState;
+interface PartialDeepStateUpdateFn {
+  <State>(
+    target: State,
+    source: StateReplacement<State>
+  ): State;
 }
 
-const b = { a: { b: { c: 1, d: 2 } } };
-// const me = partialDeepStateUpdate2(b, {
-//   a: { b: { '[[_data_]]': { c: 1, d: 2 } } },
-// });
+export const partialDeepStateUpdate: PartialDeepStateUpdateFn =
+  (target, source) => {
+    if (typeof source !== 'object' || source === null) {
+      return source;
+    }
 
-// console.log(me);
-// export function partialDeepStateUpdate<State>(
-//   target: State | State[keyof State],
-//   source: DeepPartial<State>,
-//   stateMapper?:
-//     | PendState<typeof target>
-//     | StateMapper<typeof target>
-// ) {
-//   if (
-//     typeof source !== 'object' ||
-//     Array.isArray(source) ||
-//     source === null
-//   ) {
-//     if (stateMapper && typeof stateMapper === 'function') {
-//       return stateMapper(target, source);
-//     } else {
-//       return source;
-//     }
-//   }
-//   const updateStateKeys = Reflect.ownKeys(source) as Array<
-//     keyof typeof target
-//   >;
-//   if (!updateStateKeys.length) return {};
+    type State = typeof target;
+    const stateUpdateKeys = Reflect.ownKeys(
+      source
+    ) as Array<keyof State>;
 
-//   const immutableState = { ...target };
+    const immutableState = clone(target);
 
-//   updateStateKeys.forEach((key) => {
-//     const targetValue = target[key];
-//     immutableState[key] = partialDeepStateUpdate(
-//       targetValue as any,
-//       source[key] as typeof targetValue,
-//       stateMapper
-//         ? typeof stateMapper !== 'function'
-//           ? (stateMapper[key] as any)
-//           : stateMapper
-//         : undefined
-//     );
-//   });
+    stateUpdateKeys.forEach((key) => {
+      let sourceValue = source[key];
 
-//   return immutableState as State;
-// }
+      if (
+        sourceValue &&
+        typeof sourceValue === 'object' &&
+        '[[_data_]]' in sourceValue
+      ) {
+        const { '[[_data_]]': data, mapper } =
+          sourceValue as DataMap<State, typeof key>;
+        immutableState[key] = mapper
+          ? mapper(target[key], data)
+          : data;
+      } else {
+        immutableState[key] = partialDeepStateUpdate(
+          target[key],
+          source[key] as StateReplacement<
+            State[keyof State]
+          >
+        );
+      }
+    });
+
+    return immutableState;
+  };
+
+function clone<State>(value: State) {
+  return (
+    Array.isArray(value) ? [...value] : { ...value }
+  ) as State;
+}
+
+export interface RoutePath {
+  path: string;
+  exact: boolean;
+}
+export function isPathEligibleForRevalidate(
+  curPath: string,
+  allowedPath: RoutePath | Array<RoutePath>
+): boolean {
+  if (!Array.isArray(allowedPath)) {
+    const { exact, path } = allowedPath;
+    if (exact) {
+      return !new RegExp(`^${path}$`).test(curPath);
+    } else {
+      return !path.startsWith(curPath);
+    }
+  }
+
+  return allowedPath.some((path) =>
+    isPathEligibleForRevalidate(curPath, path)
+  );
+}
+
+export function take<
+  State,
+  Parts extends Array<keyof State>
+>(parts: Parts, state: State): Pick<State, Parts[number]> {
+  const pickedState = {} as any;
+  parts.forEach((key) => {
+    pickedState[key] = state[key];
+  });
+
+  return pickedState;
+}
+
+export function generateSudoId(): string {
+  return Math.random().toString(32).slice(2);
+}

@@ -1,14 +1,9 @@
 import { FC } from 'react';
 import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
 import style from '../../styles/suggests.module.css';
-import {
-  RealTimeSuggest,
-  SuggestDetail,
-  GlobalState,
-} from '../../App';
+import { RealTimeSuggest } from '../../App';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import { useNavigate } from 'react-router-dom';
-import { PendState } from '../../store';
 
 interface AutoSuggestProps {
   inputId: string;

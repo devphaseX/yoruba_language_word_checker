@@ -2,13 +2,16 @@ import { useContext } from 'react';
 import { AppContext, GlobalState } from '../App';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { _PickOwn } from '../store';
+import {
+  SlicedGlobalState,
+  _PickOwn,
+} from '../components/utils/globalTypes';
 
 const useGlobalState = <
   PickedState extends Array<keyof GlobalState>
 >(
   pickedParts: PickedState
-): _PickOwn<GlobalState, PickedState[number]> => {
+): SlicedGlobalState<GlobalState, PickedState[number]> => {
   const store = useContext(AppContext);
 
   const [sliceState, setSliceState] = useState(
