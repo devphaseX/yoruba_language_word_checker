@@ -1,4 +1,4 @@
-import { LicensedDataSubscriber } from '../../store/type';
+import { SubscriberUpdateRequirement } from '../../store/type';
 import {
   PropertyKeyArray,
   SlicedGlobalState,
@@ -130,7 +130,7 @@ export function createIdAccessfn<
 >(
   cb: (state: SlicedGlobalState<State, DKey>) => void,
   dataKeys: DKey
-): LicensedDataSubscriber<State, DKey> {
+): SubscriberUpdateRequirement<State, DKey> {
   const accessKey = generateSudoId();
   return {
     id: accessKey,

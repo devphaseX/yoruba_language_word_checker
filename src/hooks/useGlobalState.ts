@@ -1,9 +1,10 @@
 import { useContext } from 'react';
-import { AppContext, GlobalState } from '../App';
+import { AppContext } from '../App';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { SlicedGlobalState } from '../components/utils/globalTypes';
 import { StoreDataSubscriber } from '../store/type';
+import { GlobalState } from '../appStore';
 
 const useGlobalState = <
   PickedState extends Array<keyof GlobalState>

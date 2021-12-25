@@ -58,7 +58,7 @@ export interface StoreSubscriber<State> {
   ): void;
 }
 
-export interface LicensedDataSubscriber<State, DKey> {
+export interface SubscriberUpdateRequirement<State, DKey> {
   id: string;
   dataSubscriber: DataSubscriber<State, DKey>;
 }

@@ -8,13 +8,13 @@ import useLocalStorage, {
   APP_HISTORY_KEY,
 } from '../../hooks/useLocalStorage';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
-import { AppConfig, SearchHistory } from '../../App';
 import useGlobalState from '../../hooks/useGlobalState';
 import HistoryArchieve from '../historyArchieve/historyArchieve';
 import CopyRight from '../copyRight/copyRight';
 import { useNavigate } from 'react-router-dom';
 import { isPathEligibleForRevalidate } from '../utils';
 import { RoutePath } from '../utils/index';
+import { AppConfig, SearchHistory } from '../../appStore';
 
 const Layout: FC = ({ children }) => {
   const location = useLocation();

@@ -1,9 +1,12 @@
 import { FC } from 'react';
 import useGlobalState from '../../hooks/useGlobalState';
 import style from '../../styles/searchResult.module.css';
-import { InvalidSuggest, SuggestDetail } from '../../App';
 import CheckMarkIcon from '../UI/Icons/CheckMarkIcon';
 import CancelIcon from '../UI/Icons/CancelIcon';
+import {
+  InvalidSuggest,
+  SuggestDetail,
+} from '../../appStore';
 
 const SearchResult: FC = () => {
   const { searchResult: searchResultData } = useGlobalState(

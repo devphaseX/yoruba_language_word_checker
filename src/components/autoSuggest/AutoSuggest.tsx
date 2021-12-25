@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
 import style from '../../styles/suggests.module.css';
-import { RealTimeSuggest } from '../../App';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import { useNavigate } from 'react-router-dom';
+import { RealTimeSuggest } from '../../appStore';
 
 interface AutoSuggestProps {
   inputId: string;
@@ -50,7 +50,7 @@ const AutoSuggest: FC<AutoSuggestProps> = ({
                       pasts: [{ _type, word }],
                       lastSearch: { _type, word },
                     },
-                    mapper(prev, cur) {
+                    mapper(prev: any, cur) {
                       return {
                         pasts: [
                           ...(cur.pasts ?? []),

@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { SearchMode } from '../../../App';
+import { SearchMode } from '../../../appStore';
 import ToggleIcon from '../../UI/Icons/ToggleIcon';
 import { DispatchWithLocalFunction } from '../Setting';
 

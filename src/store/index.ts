@@ -11,7 +11,7 @@ import type {
   UnwrapArray,
 } from '../components/utils/globalTypes';
 import {
-  LicensedDataSubscriber,
+  SubscriberUpdateRequirement,
   PendState,
   StoreSubscriber,
   SliceDataQueue,
@@ -32,7 +32,6 @@ export function createStore<StoreState extends object>(
     new Map();
   let recentUpdate: DeepPartial<StoreState> | null = null;
   let isSubscriberNotifiedOfUpdate: boolean = false;
-  let doesAnySubscriberErroredOnUpdate = false;
 
   type DataKeyList = PropertyKeyArray<StoreState>;
 
@@ -55,14 +54,19 @@ export function createStore<StoreState extends object>(
 
   function registerSubscriberByPriority<
     DKey extends DataKeyList
-  >(queueOption: LicensedDataSubscriber<StoreState, DKey>) {
-    const { dataSubscriber, id } = queueOption;
-    dataSubscriber.dataKeys.forEach((dk) => {
+  >(
+    requirement: SubscriberUpdateRequirement<
+      StoreState,
+      DKey
+    >
+  ) {
+    const { dataSubscriber, id: accessId } = requirement;
+    dataSubscriber.dataKeys.forEach((dataKey) => {
       registerSubcriberInPriorityQueueStore(
         dataSubscriber,
-        id
+        accessId
       );
-      connectSubscriberForDataUpdate(dk, id);
+      connectSubscriberForDataUpdate(dataKey, accessId);
     });
   }
 
@@ -95,8 +99,8 @@ export function createStore<StoreState extends object>(
   ) {
     function detachSubscriber() {
       subscriberTaskRecord.delete(accessKey);
-      updateSubscriberRecord.forEach((queuer) => {
-        queuer.delete(accessKey);
+      updateSubscriberRecord.forEach((record) => {
+        record.delete(accessKey);
       });
     }
     if (immediate) {
@@ -131,11 +135,6 @@ export function createStore<StoreState extends object>(
   }
 
   function updateSubscriber() {
-    if (doesAnySubscriberErroredOnUpdate) {
-      isSubscriberNotifiedOfUpdate = false;
-      doesAnySubscriberErroredOnUpdate = false;
-    }
-
     if (recentUpdate && !isSubscriberNotifiedOfUpdate) {
       const mutateParts = Object.keys(
         recentUpdate
@@ -159,7 +158,6 @@ export function createStore<StoreState extends object>(
         try {
           subscriber(dataUpdate as any);
         } catch (e) {
-          doesAnySubscriberErroredOnUpdate = true;
           if (process.env.NODE_ENV === 'development') {
             throw e;
           }
@@ -176,19 +174,23 @@ export function createStore<StoreState extends object>(
     > = new Map();
 
     dataKeys.forEach((dataKey) => {
-      const subscriberIds =
+      const dataSubcriberAccessIds =
         updateSubscriberRecord.get(dataKey);
-      if (!subscriberIds) {
-        return void updateSubscriberRecord.delete(dataKey);
+      if (!dataSubcriberAccessIds) {
+        return (
+          void updateSubscriberRecord.has(dataKey) &&
+          updateSubscriberRecord.delete(dataKey)
+        );
       }
 
-      subscriberIds.forEach((subscriberId) => {
+      dataSubcriberAccessIds.forEach((subscriberId) => {
         const subscriberOptions =
           subscriberTaskRecord.get(subscriberId)!;
 
         if (!subscriberOptions) {
-          return void subscriberTaskRecord.delete(
-            subscriberId
+          return (
+            void subscriberTaskRecord.has(subscriberId) &&
+            subscriberTaskRecord.delete(subscriberId)
           );
         }
 
@@ -196,19 +198,20 @@ export function createStore<StoreState extends object>(
           subscriberOptions.dataKeys.length &&
           !cacheAcknowledgeStore.has(subscriberId)
         ) {
-          const requestButNotCurrentUpdatedData =
+          const subcriberRequestButNotUpdateData =
             sliceState(subscriberOptions.dataKeys);
 
           updateDispatchDatastore.set(
             subscriberId,
-            requestButNotCurrentUpdatedData
+            subcriberRequestButNotUpdateData
           );
         }
 
-        const currentUpdateState =
+        const currentPrepUpdateState =
           updateDispatchDatastore.get(subscriberId)!;
+
         updateDispatchDatastore.set(subscriberId, {
-          ...currentUpdateState,
+          ...currentPrepUpdateState,
           [dataKey]: getStoreState()[dataKey],
         });
       });

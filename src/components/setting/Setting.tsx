@@ -1,4 +1,3 @@
-import { AppConfig } from '../../App';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import useGlobalState from '../../hooks/useGlobalState';
 import useLocalStorage, {
@@ -12,6 +11,7 @@ import {
 } from './individual/Mode';
 import PersistHistory from './individual/Persist';
 import { partialDeepStateUpdate } from '../utils/index';
+import { AppConfig } from '../../appStore';
 
 export type DispatchWithLocalFunction = (
   config: Partial<AppConfig>,

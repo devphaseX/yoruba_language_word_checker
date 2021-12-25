@@ -1,4 +1,4 @@
-import { InferStoreState } from '../App';
+import { GlobalState, InferStoreShape } from '../appStore';
 import { DeepPartial } from '../components/utils/globalTypes';
 import {
   GetStoreDispatcherParams,
@@ -10,26 +10,18 @@ type LocalPersistOption =
   | boolean
   | {
       getPersistState: (
-        state: GetStoreStateShape<InferStoreState>
-      ) => DeepPartial<GetStoreStateShape<InferStoreState>>;
+        state: GlobalState
+      ) => DeepPartial<GetStoreStateShape<InferStoreShape>>;
     };
 
 export type DispatcherParams =
-  GetStoreDispatcherParams<InferStoreState>;
-
-export type DispatcherHookOption = {
-  allowEmpty: DispatcherParams[1];
-  persistToLocal: LocalPersistOption;
-  cacheAndSpreadOldState?: PendState<
-    GetStoreStateShape<InferStoreState>
-  >;
-};
+  GetStoreDispatcherParams<InferStoreShape>;
 
 type GlobalDispatchOption = {
   allowEmpty: DispatcherParams[1];
   persistToLocal: LocalPersistOption;
   cacheAndSpreadOldState?: PendState<
-    GetStoreDispatcherParams<InferStoreState>
+    GetStoreDispatcherParams<InferStoreShape>
   >;
 };
 
