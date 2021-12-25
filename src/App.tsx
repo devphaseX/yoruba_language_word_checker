@@ -96,8 +96,6 @@ const store = createStore<GlobalState>({
 });
 
 export type InferStoreState = typeof store;
-//@ts-ignore
-globalThis.store = store;
 const context = createContext<typeof store>(store);
 
 export { context as AppContext };

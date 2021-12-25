@@ -1,9 +1,9 @@
-import { DeepPartial } from '../components/utils/globalTypes';
-
-export type QueueDataLoader<State = any> = [
-  (state: State) => void,
-  [Array<keyof State>, Partial<State> | null]
-];
+import {
+  DeepPartial,
+  PropertyKeyArray,
+  SlicedGlobalState,
+  UnwrapArray,
+} from '../components/utils/globalTypes';
 
 export type StateMapper<State> = (
   prevState: State,
@@ -19,16 +19,15 @@ export type PendState<
     | PendState<State[stateKey]>;
 }>;
 
-export type QueueIndexer = Set<string>;
+export type SubscriberQueueIds = Set<string>;
 
-export type _SelectiveSubscribers<State> = Map<
-  keyof State,
-  QueueIndexer
+export type DataEntityKey<State> = UnwrapArray<
+  PropertyKeyArray<State>
 >;
 
-export type _CallPriorityQueue = Map<
-  string,
-  QueueDataLoader
+export type SliceDataQueue<State> = Map<
+  DataEntityKey<State>,
+  SubscriberQueueIds
 >;
 
 export type PureFunction = (...args: any[]) => any;
@@ -48,3 +47,30 @@ export type GetStoreStateShape<
 export type GetStoreDispatcherParams<
   Store extends DispatchableStore
 > = Parameters<GetStoreDispatcherFnShape<Store>>;
+
+export type StoreDataSubscriber<State, DataKeys> = (
+  slice: SlicedGlobalState<State, DataKeys>
+) => void;
+export interface StoreSubscriber<State> {
+  <DKey extends PropertyKeyArray<State>>(
+    dataKeys: DKey,
+    cb: StoreDataSubscriber<State, DKey>
+  ): void;
+}
+
+export interface LicensedDataSubscriber<State, DKey> {
+  id: string;
+  dataSubscriber: DataSubscriber<State, DKey>;
+}
+
+export interface DataSubscriber<State, DKey> {
+  subscriber: (
+    state: SlicedGlobalState<State, DKey>
+  ) => void;
+  dataKeys: DKey;
+}
+
+export type PriorityQueueFnStore<State, Dkey> = Map<
+  string,
+  DataSubscriber<State, Dkey>
+>;

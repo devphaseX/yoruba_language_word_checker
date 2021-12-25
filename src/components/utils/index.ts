@@ -1,3 +1,9 @@
+import { LicensedDataSubscriber } from '../../store/type';
+import {
+  PropertyKeyArray,
+  SlicedGlobalState,
+} from './globalTypes';
+
 type DataMap<State, K extends keyof State> = {
   '[[_data_]]': State[K];
   mapper?: (prev: State[K], cur: State[K]) => State[K];
@@ -84,7 +90,7 @@ export function isPathEligibleForRevalidate(
 
 export function take<
   State,
-  Parts extends Array<keyof State>
+  Parts extends PropertyKeyArray<State>
 >(parts: Parts, state: State): Pick<State, Parts[number]> {
   const pickedState = {} as any;
   parts.forEach((key) => {
@@ -96,4 +102,45 @@ export function take<
 
 export function generateSudoId(): string {
   return Math.random().toString(32).slice(2);
+}
+
+export function sliceObject<
+  State = Record<PropertyKey, any>,
+  DKey extends PropertyKeyArray<State> = PropertyKeyArray<State>
+>(
+  state: State,
+  dKey: DKey
+): SlicedGlobalState<State, DKey> {
+  return take(dKey, state);
+}
+
+type StateMapper<State> = () => State;
+
+export function getStateSnapshot<SnapShotState = any>(
+  mapper: StateMapper<SnapShotState>
+) {
+  return function (): SnapShotState {
+    return JSON.parse(JSON.stringify(mapper()));
+  };
+}
+
+export function createIdAccessfn<
+  State,
+  DKey extends PropertyKeyArray<State>
+>(
+  cb: (state: SlicedGlobalState<State, DKey>) => void,
+  dataKeys: DKey
+): LicensedDataSubscriber<State, DKey> {
+  const accessKey = generateSudoId();
+  return {
+    id: accessKey,
+    dataSubscriber: {
+      subscriber: cb,
+      dataKeys,
+    },
+  };
+}
+
+export function sortByAscending(list: Array<number>) {
+  return [...list].sort((first, second) => first - second);
 }

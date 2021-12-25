@@ -10,14 +10,14 @@ const useLocalStorage = <Data>(dataId: string) => {
         JSON.stringify(data)
       );
     },
-    [window]
+    [dataId]
   );
 
   const remove = useCallback(
     function remove() {
       window.localStorage.removeItem(dataId);
     },
-    [window]
+    [dataId]
   );
 
   useEffect(() => {

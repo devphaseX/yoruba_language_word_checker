@@ -1,6 +1,5 @@
 import { useCallback, useContext } from 'react';
-import { AppContext, InferStoreState } from '../App';
-import { GetStoreDispatcherParams } from '../store/type';
+import { AppContext } from '../App';
 import { GlobalDispatcherHookFn } from './hooksType';
 import useLocalStorage, {
   APP_HISTORY_KEY,
@@ -10,11 +9,6 @@ const useGlobalDispatch = () => {
   const store = useContext(AppContext);
   const { persistToLocalStorage: persistLocalHistory } =
     useLocalStorage(APP_HISTORY_KEY);
-
-  type GlobalDispatcherParams =
-    GetStoreDispatcherParams<InferStoreState>;
-  type StoreDispatcherFn =
-    GlobalDispatcherHookFn<GlobalDispatcherParams>;
 
   return useCallback(
     ((state, options) => {
@@ -32,7 +26,7 @@ const useGlobalDispatch = () => {
           );
         }
       }
-    }) as StoreDispatcherFn,
+    }) as GlobalDispatcherHookFn,
     [store]
   );
 };

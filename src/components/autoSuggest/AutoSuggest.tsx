@@ -53,8 +53,8 @@ const AutoSuggest: FC<AutoSuggestProps> = ({
                     mapper(prev, cur) {
                       return {
                         pasts: [
-                          ...(prev.pasts ?? []),
                           ...(cur.pasts ?? []),
+                          ...(prev.pasts ?? []),
                         ],
                         lastSearch: cur.lastSearch,
                       };

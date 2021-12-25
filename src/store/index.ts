@@ -2,211 +2,225 @@ import {
   partialDeepStateUpdate,
   StateReplacement,
   take,
-  generateSudoId,
+  getStateSnapshot,
+  createIdAccessfn as createFnAccessId,
 } from '../components/utils';
-import type { _PickOwn } from '../components/utils/globalTypes';
 import type {
+  DeepPartial,
+  PropertyKeyArray,
+  UnwrapArray,
+} from '../components/utils/globalTypes';
+import {
+  LicensedDataSubscriber,
   PendState,
-  QueueDataLoader,
-  _CallPriorityQueue,
-  _SelectiveSubscribers,
+  StoreSubscriber,
+  SliceDataQueue,
+  PriorityQueueFnStore,
+  DataSubscriber,
 } from './type';
 
-export function createStore<State extends object>(
-  _initialState: State
+export function createStore<StoreState extends object>(
+  _initialState: DeepPartial<StoreState>
 ) {
-  let _rootStore: State = _initialState;
-  const _selectiveSubscribers: _SelectiveSubscribers<State> =
+  {
+    let _rootStore = _initialState as StoreState;
+    var getStoreState = getStateSnapshot(() => _rootStore);
+    var _setStoreState = (newState: StoreState) =>
+      (_rootStore = newState);
+  }
+  const updateSubscriberRecord: SliceDataQueue<StoreState> =
     new Map();
-  let recentUpdated: Partial<State> | null = null;
-  let _isUpdatePublish: boolean = false;
-  const _priorityCbQueue: _CallPriorityQueue = new Map();
+  let recentUpdate: DeepPartial<StoreState> | null = null;
+  let isSubscriberNotifiedOfUpdate: boolean = false;
+  let doesAnySubscriberErroredOnUpdate = false;
 
-  function getStoreState(): State {
-    return JSON.parse(JSON.stringify(_rootStore));
-  }
+  type DataKeyList = PropertyKeyArray<StoreState>;
 
-  function subscriber<
-    PickedKeys extends Partial<Array<keyof State>>
-  >(
-    sliceState: PickedKeys,
-    cb: (slice: _PickOwn<State, PickedKeys[number]>) => void
-  ) {
-    const _selectedDataSliceKeys = sliceState.filter(
-      (k): k is keyof State =>
-        _rootStore.hasOwnProperty(k as PropertyKey)
-    );
-    const accessKey = prioprityBaseEnqueue(
+  const subscriberTaskRecord: PriorityQueueFnStore<
+    StoreState,
+    DataKeyList
+  > = new Map();
+
+  const subscriber: StoreSubscriber<StoreState> = (
+    dataKeys,
+    cb
+  ) => {
+    const dataSubscriberEntry = createFnAccessId(
       cb,
-      _selectedDataSliceKeys
+      dataKeys
     );
+    registerSubscriberByPriority(dataSubscriberEntry);
+    return unsubcriber(dataSubscriberEntry.id);
+  };
 
-    return dequeueCb(accessKey, true);
-  }
-
-  function sliceState<
-    PickedKeys extends Partial<Array<keyof State>>
-  >(
-    parts: PickedKeys
-  ): _PickOwn<State, PickedKeys[number]> {
-    return take(
-      parts as Array<keyof State>,
-      getStoreState()
-    );
-  }
-
-  function prioprityBaseEnqueue(
-    cb: (state: any) => void,
-    subscribeKeys: Array<keyof State>
-  ) {
-    const accessKey = generateSudoId();
-    _priorityCbQueue.set(accessKey, [
-      cb,
-      [subscribeKeys, null],
-    ]);
-
-    subscribeKeys.forEach((sbKey) => {
-      const subscribeRegister =
-        _selectiveSubscribers.get(sbKey);
-      if (subscribeRegister) {
-        subscribeRegister.add(accessKey);
-      } else {
-        _selectiveSubscribers.set(
-          sbKey,
-          new Set([accessKey])
-        );
-      }
-    });
-
-    return accessKey;
-  }
-
-  function removeCbFromQueue(
-    accessKey: string,
-    priorityQueue: _CallPriorityQueue,
-    selectiveQueue: _SelectiveSubscribers<any>
-  ) {
-    priorityQueue.delete(accessKey);
-    selectiveQueue.forEach((queueIndexer) => {
-      queueIndexer.delete(accessKey);
+  function registerSubscriberByPriority<
+    DKey extends DataKeyList
+  >(queueOption: LicensedDataSubscriber<StoreState, DKey>) {
+    const { dataSubscriber, id } = queueOption;
+    dataSubscriber.dataKeys.forEach((dk) => {
+      registerSubcriberInPriorityQueueStore(
+        dataSubscriber,
+        id
+      );
+      connectSubscriberForDataUpdate(dk, id);
     });
   }
 
-  function dequeueCb(accessKey: string, defer?: boolean) {
-    const lazyDequeue = removeCbFromQueue.bind(
-      null,
-      accessKey,
-      _priorityCbQueue,
-      _selectiveSubscribers
-    );
-    if (defer) {
-      return lazyDequeue;
+  function registerSubcriberInPriorityQueueStore(
+    dataSubscriber: DataSubscriber<StoreState, DataKeyList>,
+    accessId: string
+  ) {
+    subscriberTaskRecord.set(accessId, dataSubscriber);
+  }
+
+  function connectSubscriberForDataUpdate(
+    dataKey: UnwrapArray<DataKeyList>,
+    accessId: string
+  ) {
+    const existingSubscriberOption =
+      updateSubscriberRecord.get(dataKey);
+    if (existingSubscriberOption) {
+      existingSubscriberOption.add(accessId);
+    } else {
+      updateSubscriberRecord.set(
+        dataKey,
+        new Set([accessId])
+      );
     }
-    lazyDequeue();
+  }
+
+  function unsubcriber(
+    accessKey: string,
+    immediate?: boolean
+  ) {
+    function detachSubscriber() {
+      subscriberTaskRecord.delete(accessKey);
+      updateSubscriberRecord.forEach((queuer) => {
+        queuer.delete(accessKey);
+      });
+    }
+    if (immediate) {
+      return detachSubscriber();
+    }
+    return detachSubscriber;
   }
 
   function setStoreState(
-    updatedStatePart: StateReplacement<State>,
+    updatedStatePart: StateReplacement<StoreState>,
     storeSetOption?: {
       allowEmptyState?: boolean;
-      pendState?: PendState<State>;
+      pendState?: PendState<StoreState>;
     }
   ) {
     if (
       Object.keys(updatedStatePart).length ||
       (storeSetOption && storeSetOption.allowEmptyState)
     ) {
-      _rootStore = partialDeepStateUpdate(
-        _rootStore,
-        updatedStatePart
-      ) as State;
+      _setStoreState(
+        partialDeepStateUpdate(
+          getStoreState(),
+          updatedStatePart
+        )
+      );
 
-      _isUpdatePublish = false;
-      recentUpdated = updatedStatePart as any;
+      isSubscriberNotifiedOfUpdate = false;
+      recentUpdate =
+        updatedStatePart as DeepPartial<StoreState>;
       updateSubscriber();
     }
   }
 
   function updateSubscriber() {
-    if (recentUpdated && !_isUpdatePublish) {
+    if (doesAnySubscriberErroredOnUpdate) {
+      isSubscriberNotifiedOfUpdate = false;
+      doesAnySubscriberErroredOnUpdate = false;
+    }
+
+    if (recentUpdate && !isSubscriberNotifiedOfUpdate) {
       const mutateParts = Object.keys(
-        recentUpdated
-      ) as Array<keyof State>;
+        recentUpdate
+      ) as DataKeyList;
 
-      cookState(
-        mutateParts,
-        (accessId, [subscriber, dataPreload]) => {
-          _priorityCbQueue.set(accessId as string, [
-            subscriber,
-            dataPreload,
-          ]);
-        }
-      );
+      const dataUpForUpdate = prepDataUpdate(mutateParts);
 
-      notifySubscribers();
+      notifySubscriber(dataUpForUpdate);
+      isSubscriberNotifiedOfUpdate = true;
+      recentUpdate = null;
     }
   }
 
-  function cookState(
-    mutateParts: Array<keyof State>,
-    cb: (
-      accessKey: PropertyKey,
-      cookedResult: QueueDataLoader
-    ) => void
+  function notifySubscriber(
+    updateStore: ReturnType<typeof prepDataUpdate>
   ) {
-    for (const dataKey of mutateParts) {
-      const activeSubscriberIds = _selectiveSubscribers.get(
-        dataKey as keyof State
-      );
-
-      if (activeSubscriberIds) {
-        let cookedData: Partial<State> | null = {};
-        const cacheCheckedBooklet: Set<string> = new Set();
-
-        for (const accessId of activeSubscriberIds) {
-          let [subscriber, lastestSelfPath] =
-            _priorityCbQueue.get(accessId)!;
-          [, cookedData] = lastestSelfPath;
-          let dataKeys = lastestSelfPath[0] as Array<
-            keyof State
-          >;
-
-          if (!cacheCheckedBooklet.has(accessId)) {
-            cookedData = Object.fromEntries(
-              dataKeys.map((key) => [key, _rootStore[key]])
-            ) as State;
-            cacheCheckedBooklet.add(accessId);
+    for (let [subscriberKey, dataUpdate] of updateStore) {
+      if (updateStore.has(subscriberKey)) {
+        const { subscriber } =
+          subscriberTaskRecord.get(subscriberKey)!;
+        try {
+          subscriber(dataUpdate as any);
+        } catch (e) {
+          doesAnySubscriberErroredOnUpdate = true;
+          if (process.env.NODE_ENV === 'development') {
+            throw e;
           }
-          cookedData = {
-            ...cookedData,
-            [dataKey]: _rootStore![dataKey as keyof State],
-          };
-          cb(accessId, [
-            subscriber,
-            [dataKeys, cookedData],
-          ]);
         }
       }
     }
   }
 
-  function notifySubscribers() {
-    if (_isUpdatePublish) return;
-    for (const [
-      accessKey,
-      [activeSubscriber, [dataKeys, patchedState]],
-    ] of _priorityCbQueue) {
-      if (patchedState) {
-        activeSubscriber(patchedState);
-        _priorityCbQueue.set(accessKey, [
-          activeSubscriber,
-          [dataKeys, null],
-        ]);
+  function prepDataUpdate(dataKeys: DataKeyList) {
+    const cacheAcknowledgeStore = new Set<string>();
+    const updateDispatchDatastore: Map<
+      string,
+      DeepPartial<StoreState>
+    > = new Map();
+
+    dataKeys.forEach((dataKey) => {
+      const subscriberIds =
+        updateSubscriberRecord.get(dataKey);
+      if (!subscriberIds) {
+        return void updateSubscriberRecord.delete(dataKey);
       }
-    }
-    _isUpdatePublish = true;
-    recentUpdated = null;
+
+      subscriberIds.forEach((subscriberId) => {
+        const subscriberOptions =
+          subscriberTaskRecord.get(subscriberId)!;
+
+        if (!subscriberOptions) {
+          return void subscriberTaskRecord.delete(
+            subscriberId
+          );
+        }
+
+        if (
+          subscriberOptions.dataKeys.length &&
+          !cacheAcknowledgeStore.has(subscriberId)
+        ) {
+          const requestButNotCurrentUpdatedData =
+            sliceState(subscriberOptions.dataKeys);
+
+          updateDispatchDatastore.set(
+            subscriberId,
+            requestButNotCurrentUpdatedData
+          );
+        }
+
+        const currentUpdateState =
+          updateDispatchDatastore.get(subscriberId)!;
+        updateDispatchDatastore.set(subscriberId, {
+          ...currentUpdateState,
+          [dataKey]: getStoreState()[dataKey],
+        });
+      });
+    });
+
+    return updateDispatchDatastore;
   }
+
+  function sliceState(parts: DataKeyList) {
+    return take(parts, getStoreState());
+  }
+
   return {
     getStoreState,
     subscriber,

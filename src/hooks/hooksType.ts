@@ -14,9 +14,10 @@ type LocalPersistOption =
       ) => DeepPartial<GetStoreStateShape<InferStoreState>>;
     };
 
-export type DispatcherHookOption<
-  DispatcherParams extends GetStoreDispatcherParams<InferStoreState>
-> = {
+export type DispatcherParams =
+  GetStoreDispatcherParams<InferStoreState>;
+
+export type DispatcherHookOption = {
   allowEmpty: DispatcherParams[1];
   persistToLocal: LocalPersistOption;
   cacheAndSpreadOldState?: PendState<
@@ -24,9 +25,7 @@ export type DispatcherHookOption<
   >;
 };
 
-type GlobalDispatchOption<
-  DispatcherParams extends GetStoreDispatcherParams<InferStoreState>
-> = {
+type GlobalDispatchOption = {
   allowEmpty: DispatcherParams[1];
   persistToLocal: LocalPersistOption;
   cacheAndSpreadOldState?: PendState<
@@ -34,9 +33,7 @@ type GlobalDispatchOption<
   >;
 };
 
-export type GlobalDispatcherHookFn<
-  DispatcherParams extends GetStoreDispatcherParams<InferStoreState>
-> = (
+export type GlobalDispatcherHookFn = (
   state: DispatcherParams[0],
-  options?: Partial<GlobalDispatchOption<DispatcherParams>>
+  options?: Partial<GlobalDispatchOption>
 ) => void;

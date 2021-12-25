@@ -2,10 +2,8 @@ import { useContext } from 'react';
 import { AppContext, GlobalState } from '../App';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import {
-  SlicedGlobalState,
-  _PickOwn,
-} from '../components/utils/globalTypes';
+import { SlicedGlobalState } from '../components/utils/globalTypes';
+import { StoreDataSubscriber } from '../store/type';
 
 const useGlobalState = <
   PickedState extends Array<keyof GlobalState>
@@ -19,7 +17,13 @@ const useGlobalState = <
   );
 
   useEffect(() => {
-    return store.subscriber(pickedParts, setSliceState);
+    return store.subscriber(
+      pickedParts,
+      setSliceState as StoreDataSubscriber<
+        GlobalState,
+        PickedState
+      >
+    );
   }, [pickedParts, store]);
 
   return sliceState;
