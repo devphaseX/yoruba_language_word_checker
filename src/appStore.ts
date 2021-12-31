@@ -18,13 +18,13 @@ export interface GlobalState {
   searchResult: null | SuggestDetail;
   searchedWord?: string;
   history: SearchHistory;
-  suggests: Array<RealTimeSuggest>;
+  suggests: Array<RealTimeSuggest> | null;
 }
 
 export type ValidSuggest = { _type: '_valid' };
 export type InvalidSuggest = {
   _type: '_invalid';
-  suggests: Array<SuggestWord>;
+  suggests: Array<RealTimeSuggest>;
 };
 
 export interface RealTimeSuggest extends ValidSuggest {
@@ -50,39 +50,12 @@ export const store = createStore<GlobalState>({
     allowPersist: false,
   },
   isTyping: false,
-  searchResult: {
-    _type: '_invalid',
-    word: 'Adeniyi',
-    suggests: [['Adeoluwa', Math.random()]],
-  },
+  searchResult: null,
   history: {
     lastSearch: null,
-    pasts: [
-      { _type: '_valid', word: 'adeniyi' },
-      {
-        _type: '_invalid',
-        word: 'ad',
-        suggests: [['adeniyi', Math.random()]],
-      },
-    ],
+    pasts: [],
   },
-  suggests: [
-    {
-      _type: '_valid',
-      word: 'adeolu',
-      probability: Math.random(),
-    },
-    {
-      _type: '_valid',
-      word: 'Omolabake',
-      probability: Math.random(),
-    },
-    {
-      _type: '_valid',
-      word: 'Ishola',
-      probability: Math.random(),
-    },
-  ],
+  suggests: null,
 });
 
 export type InferStoreShape = typeof store;

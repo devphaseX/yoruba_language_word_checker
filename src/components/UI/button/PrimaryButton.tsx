@@ -1,9 +1,20 @@
 import { FC } from 'react';
 import style from '../../../styles/button.module.css';
 
-const PrimaryButton: FC = ({ children }) => {
+interface PrimaryButtonProps {
+  onClick?: () => void;
+}
+
+const PrimaryButton: FC<PrimaryButtonProps> = ({
+  children,
+  onClick,
+}) => {
   return (
-    <button type="submit" className={style.primaryButton}>
+    <button
+      type="submit"
+      className={style.primaryButton}
+      onClick={onClick}
+    >
       {children}
     </button>
   );

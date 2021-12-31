@@ -141,6 +141,26 @@ export function createIdAccessfn<
   };
 }
 
-export function sortByAscending(list: Array<number>) {
-  return [...list].sort((first, second) => first - second);
+type ComparerFn<T> = (first: T, second: T) => number;
+
+export function sort(list: Array<number>): number[];
+export function sort<T>(
+  list: Array<T>,
+  compareFn: ComparerFn<T>
+): T[];
+
+export function sort<T>(
+  list: Array<T>,
+  comparerFn?: ComparerFn<T>
+): T[] | number[] {
+  function sortDefault(first: number, second: number) {
+    return first - second;
+  }
+  return comparerFn
+    ? [...list].sort(comparerFn)
+    : ([...list] as Array<any>).sort(sortDefault);
+}
+
+export function descendingOrder(x: number, y: number) {
+  return x > y ? -1 : 1;
 }

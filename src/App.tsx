@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, useEffect } from 'react';
 import Layout from './components/layout/Layout';
 import {
   BrowserRouter,
@@ -9,6 +9,7 @@ import Home from './components/pages/Home';
 import './styles/index.css';
 import Result from './components/pages/Result';
 import { store } from './appStore';
+import axios from './axios';
 
 const context = createContext<typeof store>(store);
 

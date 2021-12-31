@@ -50,7 +50,7 @@ const AutoSuggest: FC<AutoSuggestProps> = ({
                       pasts: [{ _type, word }],
                       lastSearch: { _type, word },
                     },
-                    mapper(prev: any, cur) {
+                    mapper(prev, cur) {
                       return {
                         pasts: [
                           ...(cur.pasts ?? []),

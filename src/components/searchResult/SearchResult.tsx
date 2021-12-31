@@ -56,7 +56,9 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
 }) => {
   const sortedSuggestedWord = searchedWord.suggests
     .slice()
-    .sort((a, b) => ascendingOrder(a[1], b[1]));
+    .sort((a, b) =>
+      ascendingOrder(a.probability, b.probability)
+    );
   return (
     <div>
       <h3 className={style.resultMsg}>
@@ -74,7 +76,7 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
         </h4>
         <div>
           {sortedSuggestedWord.map((sug, i) => (
-            <span key={sug[0] + i}>{sug[0]}</span>
+            <span key={sug.word + i}>{sug.word}</span>
           ))}
         </div>
       </div>

@@ -60,14 +60,16 @@ export function createStore<StoreState extends object>(
       DKey
     >
   ) {
-    const { dataSubscriber, id: accessId } = requirement;
-    dataSubscriber.dataKeys.forEach((dataKey) => {
-      registerSubcriberInPriorityQueueStore(
-        dataSubscriber,
-        accessId
-      );
-      connectSubscriberForDataUpdate(dataKey, accessId);
-    });
+    {
+      const { dataSubscriber, id: accessId } = requirement;
+      dataSubscriber.dataKeys.forEach((dataKey) => {
+        registerSubcriberInPriorityQueueStore(
+          dataSubscriber,
+          accessId
+        );
+        connectSubscriberForDataUpdate(dataKey, accessId);
+      });
+    }
   }
 
   function registerSubcriberInPriorityQueueStore(
@@ -104,7 +106,7 @@ export function createStore<StoreState extends object>(
       });
     }
     if (immediate) {
-      return detachSubscriber();
+      return void detachSubscriber();
     }
     return detachSubscriber;
   }
