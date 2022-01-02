@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { useNavigate } from 'react-router';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import useGlobalState from '../../hooks/useGlobalState';
+import { APP_HISTORY_KEY } from '../../hooks/useLocalStorage';
 import style from '../../styles/history.module.css';
 import TertiaryButton from '../UI/button/TertiaryButton';
 import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
@@ -50,12 +51,8 @@ const HistoryArchieve: FC = () => {
                         isHistoryOpen: false,
                       },
                       {
-                        persistToLocal: {
-                          getPersistState: (state) => {
-                            return {
-                              history: state.history,
-                            };
-                          },
+                        localStorageOption: {
+                          history: APP_HISTORY_KEY,
                         },
                       }
                     );
@@ -92,7 +89,11 @@ const HistoryArchieve: FC = () => {
                   },
                 },
               },
-              { persistToLocal: true }
+              {
+                localStorageOption: {
+                  history: APP_HISTORY_KEY,
+                },
+              }
             );
           }
         }}

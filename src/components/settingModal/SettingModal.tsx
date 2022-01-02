@@ -4,6 +4,7 @@ import style from '../../styles/settingModal.module.css';
 import Setting from '../setting/Setting';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import ExitIcon from '../UI/Icons/ExitIcon';
+import { APP_CONFIG_KEY } from '../../hooks/useLocalStorage';
 
 const SettingModal: FC = () => {
   const state = useGlobalState([
@@ -28,19 +29,26 @@ const SettingModal: FC = () => {
                 return dispatch({ isModalOpen: false });
               }
               case false: {
-                return dispatch({
-                  isModalOpen: false,
-                  appConfig: {
-                    searchMode: {
-                      mode: {
-                        '[[_data_]]': {
-                          _type: 'light',
-                          status: true,
+                return dispatch(
+                  {
+                    isModalOpen: false,
+                    appConfig: {
+                      searchMode: {
+                        mode: {
+                          '[[_data_]]': {
+                            _type: 'light',
+                            status: true,
+                          },
                         },
                       },
                     },
                   },
-                });
+                  {
+                    localStorageOption: {
+                      appConfig: APP_CONFIG_KEY,
+                    },
+                  }
+                );
               }
             }
           }}

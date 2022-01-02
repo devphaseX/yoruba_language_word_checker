@@ -46,6 +46,7 @@ const Layout: FC = ({ children }) => {
         appConfig: configLocalSave,
       });
     }
+
     if (historyLocalState?.pasts) {
       dispatch({
         history: { '[[_data_]]': historyLocalState },

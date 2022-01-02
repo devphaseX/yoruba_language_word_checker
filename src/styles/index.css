@@ -47,7 +47,6 @@ button {
   display: grid;
   grid-template-columns: 98px repeat(12, 1fr) 98px;
   column-gap: var(--grid-gutter);
-  padding-top: 48px;
 }
 
 .logo {
@@ -59,6 +58,7 @@ button {
   grid-template-columns: repeat(12, 1fr);
   grid-column: 2/-2;
   align-self: center;
+  margin-top: 48px;
 }
 
 .search {
@@ -76,4 +76,8 @@ button {
 .search-label span:last-child {
   color: var(--light-grey);
   display: block;
+}
+.layout {
+  display: flex;
+  flex-direction: column;
 }

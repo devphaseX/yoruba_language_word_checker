@@ -74,7 +74,7 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
         <h4 className={style.suggest_question}>
           Do you mean?
         </h4>
-        <div>
+        <div className={style.suggest_list}>
           {sortedSuggestedWord.map((sug, i) => (
             <span key={sug.word + i}>{sug.word}</span>
           ))}

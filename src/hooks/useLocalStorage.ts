@@ -3,22 +3,16 @@ import { useCallback, useEffect, useState } from 'react';
 const useLocalStorage = <Data>(dataId: string) => {
   const [state, setState] = useState<Data | null>();
 
-  const persist = useCallback(
-    function persist(data: Data) {
-      window.localStorage.setItem(
-        dataId,
-        JSON.stringify(data)
-      );
-    },
-    [dataId]
-  );
+  let { persist: _persist, remove: _remove } =
+    useLocalStorageFeature();
 
-  const remove = useCallback(
-    function remove() {
-      window.localStorage.removeItem(dataId);
-    },
-    [dataId]
-  );
+  const persist = useCallback(function persist(data: Data) {
+    _persist(data, dataId);
+  }, []);
+
+  const remove = useCallback(function remove() {
+    _remove(dataId);
+  }, []);
 
   useEffect(() => {
     try {
@@ -43,3 +37,25 @@ export default useLocalStorage;
 
 export const APP_CONFIG_KEY = '%yorubaAppConfig%';
 export const APP_HISTORY_KEY = '%yorubaSearchHistory%';
+
+export const useLocalStorageFeature = () => {
+  const persist = useCallback(function persist<Data>(
+    data: Data,
+    dataId: string
+  ) {
+    window.localStorage.setItem(
+      dataId,
+      JSON.stringify(data)
+    );
+  },
+  []);
+
+  const remove = useCallback(function remove(
+    dataId: string
+  ) {
+    window.localStorage.removeItem(dataId);
+  },
+  []);
+
+  return { persist, remove };
+};

@@ -3,12 +3,16 @@ import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
 import style from '../../styles/suggests.module.css';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import { useNavigate } from 'react-router-dom';
-import { RealTimeSuggest } from '../../appStore';
+import {
+  mergeHistory,
+  RealTimeSuggest,
+} from '../../appStore';
 
 interface AutoSuggestProps {
   inputId: string;
   isVisible: boolean;
   suggests: Array<RealTimeSuggest> | null;
+  setIsTyping: (typing: boolean) => void;
 }
 
 function ascendingOrder(a: number, b: number) {
@@ -18,6 +22,7 @@ const AutoSuggest: FC<AutoSuggestProps> = ({
   inputId,
   isVisible,
   suggests,
+  setIsTyping,
 }) => {
   const className = [
     style[isVisible ? 'openSuggests' : 'closeSuggests'],
@@ -36,38 +41,25 @@ const AutoSuggest: FC<AutoSuggestProps> = ({
           .sort((a, b) =>
             ascendingOrder(a.probability, b.probability)
           )
-          .map(({ word, _type }, i) => (
+          .map((suggest, i) => (
             <div
-              key={word + i}
+              key={suggest.word + i}
               className={style.suggest}
               onClick={() => {
                 dispatch({
-                  searchResult: {
-                    '[[_data_]]': { _type, word },
-                  },
-                  history: {
-                    '[[_data_]]': {
-                      pasts: [{ _type, word }],
-                      lastSearch: { _type, word },
-                    },
-                    mapper(prev, cur) {
-                      return {
-                        pasts: [
-                          ...(cur.pasts ?? []),
-                          ...(prev.pasts ?? []),
-                        ],
-                        lastSearch: cur.lastSearch,
-                      };
-                    },
-                  },
-                  isTyping: false,
+                  ...mergeHistory(suggest),
+                  searchResult: { '[[_data_]]': suggest },
                 });
+                setIsTyping(false);
                 navigate('/results');
               }}
             >
               <div className={style.suggestInner}>
                 <ArrowUpIcon />
-                <option value={word} label={word}></option>
+                <option
+                  value={suggest.word}
+                  label={suggest.word}
+                ></option>
               </div>
               <span className={style.clickTag}>
                 click on to select

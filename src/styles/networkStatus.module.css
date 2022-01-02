@@ -1,0 +1,23 @@
+.online {
+  background-color: #00ff0042;
+  color: green;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+.offline {
+  background-color: #ff00003f;
+  color: #df0505;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+.hide {
+  display: none;
+  padding: 5px 10px;
+}
+
+.unhide {
+  display: block;
+  height: 100%;
+}

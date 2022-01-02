@@ -1,7 +1,7 @@
 import {
   partialDeepStateUpdate,
   StateReplacement,
-  take,
+  pick,
   getStateSnapshot,
   createIdAccessfn as createFnAccessId,
 } from '../components/utils';
@@ -223,7 +223,7 @@ export function createStore<StoreState extends object>(
   }
 
   function sliceState(parts: DataKeyList) {
-    return take(parts, getStoreState());
+    return pick(parts, getStoreState());
   }
 
   return {

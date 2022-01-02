@@ -9,14 +9,20 @@ import Home from './components/pages/Home';
 import './styles/index.css';
 import Result from './components/pages/Result';
 import { store } from './appStore';
-import axios from './axios';
+import NetworkStatus from './components/network/NetworkStatus';
 
 const context = createContext<typeof store>(store);
 
+const offlineMsg = `oops!, we noticed your network connection is inactive, search feature only works on active network`;
+const onlineMsg = `you are connected.`;
 export { context as AppContext };
 export default function App() {
   return (
     <div className="app" id="me">
+      <NetworkStatus
+        offlineStatusMessage={offlineMsg}
+        onlineStatusMessage={onlineMsg}
+      />
       <context.Provider value={store}>
         <BrowserRouter>
           <Layout>

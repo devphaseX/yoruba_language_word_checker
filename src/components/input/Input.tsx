@@ -2,97 +2,133 @@ import PrimaryButton from '../UI/button/PrimaryButton';
 import style from '../../styles/input.module.css';
 import SearchIcon from '../UI/Icons/SearchIcon';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
-import useGlobalState from '../../hooks/useGlobalState';
 import AutoSuggest from '../autoSuggest/AutoSuggest';
 import { useEffect, useState } from 'react';
 import axios from '../../axios';
 import axiosCall, { CancelToken } from 'axios';
-import { descendingOrder, sort } from '../utils';
+import {
+  descendingOrder,
+  findItem,
+  pipe,
+  sort,
+  takeFromList,
+} from '../utils';
 import { SuggestResult } from '../types';
 import {
+  mergeHistory,
   RealTimeSuggest,
   SuggestDetail,
 } from '../../appStore';
 import { useNavigate } from 'react-router-dom';
-import SearchResult from '../searchResult/SearchResult';
+import { unwrappedData } from '../utils/index';
+import useNetworkStatus from '../../hooks/useNetwork';
+
+function getRealTimeSuggests(
+  searchResult: Array<SuggestResult>
+) {
+  const sortUsingProbability = (
+    suggests: Array<SuggestResult>
+  ) =>
+    sort(suggests, (f, s) => descendingOrder(f[1], s[1]));
+
+  const pickTopFiveSuggest = (
+    suggests: Array<SuggestResult>
+  ) => {
+    return takeFromList(suggests, 0, 5);
+  };
+
+  return pipe(
+    sortUsingProbability,
+    pickTopFiveSuggest
+  )(searchResult).map(
+    ([word, probability]): RealTimeSuggest => ({
+      _type: '_valid',
+      probability,
+      word,
+    })
+  );
+}
 
 const Input = () => {
   const dispatch = useGlobalDispatch();
-  const { isTyping, suggests } = useGlobalState([
-    'isTyping',
-    'suggests',
-  ]);
+  const onlineStatus = useNetworkStatus();
+
+  const [currentSuggests, setCurrentSuggests] =
+    useState<Array<RealTimeSuggest> | null>(null);
+
+  const [isTyping, setIsTyping] = useState(false);
 
   const [userInput, setUserInput] = useState('');
   const navigate = useNavigate();
 
-  async function searchHanlder<R = unknown, E = unknown>(
-    searchOption: {
-      source: CancelToken;
-      resultHanlder: (
-        result: R,
-        searchWord: string
-      ) => void;
-    },
-    errorHandler?: (error: E) => void
-  ) {
-    if (userInput) {
-      try {
-        const searchResult = await axios
-          .post(
-            '/api/search',
-            { search_word: userInput },
-            { cancelToken: searchOption.source }
-          )
-          .then<Array<SuggestResult>>((res) => res.data);
+  interface SearchOptionConfig<E> {
+    ignoreError: boolean;
+    errorHandler: this['ignoreError'] extends true
+      ? (error: E) => void
+      : undefined;
+  }
 
-        const pickedSearchResult = sort(
-          searchResult,
-          (f, s) => descendingOrder(f[1], s[1])
-        )
-          .slice(0, 4)
-          .map(
-            ([word, probability]): RealTimeSuggest => ({
-              _type: '_valid',
-              probability,
-              word,
-            })
+  type SearchResultHandler = (
+    result: Array<RealTimeSuggest>,
+    searchWord: string
+  ) => void;
+  interface SearchOption<E> {
+    handler: SearchResultHandler;
+    source: CancelToken;
+    options: Partial<SearchOptionConfig<E>>;
+  }
+
+  async function suggestResolver<E = unknown>({
+    handler,
+    source,
+    options,
+  }: SearchOption<E>) {
+    console.log(onlineStatus.status);
+    if (userInput) {
+      if (onlineStatus.status === 'online') {
+        try {
+          const searchResult = await axios
+            .post(
+              '/api/search',
+              { search_word: userInput },
+              { cancelToken: source }
+            )
+            .then<Array<SuggestResult>>(unwrappedData);
+
+          handler(
+            getRealTimeSuggests(searchResult),
+            userInput
           );
-        searchOption.resultHanlder(
-          pickedSearchResult as any,
-          userInput
-        );
-      } catch (e: any) {
-        if (errorHandler) return void errorHandler(e);
-        throw e;
+        } catch (e: any) {
+          if (
+            !(options.ignoreError && options.errorHandler)
+          ) {
+            throw e;
+          }
+        }
+        return;
       }
+      alert(
+        "Sorry you are currently offline. So the search function isn't working, check your connection."
+      );
     }
   }
+
   const source = axiosCall.CancelToken.source();
 
   useEffect(() => {
-    searchHanlder<Array<RealTimeSuggest>>(
-      {
-        source: source.token,
-        resultHanlder(result) {
-          dispatch({
-            suggests: { '[[_data_]]': result },
-          });
-        },
-      },
-      () => {}
-    );
+    suggestResolver({
+      handler: setCurrentSuggests,
+      source: source.token,
+      options: { ignoreError: true },
+    });
+
     return () => {
       source.cancel();
     };
   }, [userInput]);
   return (
-    <div
-      className={style.outterInputBox}
-      onMouseLeave={() => {
-        dispatch({ isTyping: false });
-      }}
-    >
+    <div className={style.outterInputBox}>
       <div className={style.innerInputBox}>
         <span className={style.searchIconBox}>
           <SearchIcon />
@@ -102,7 +138,12 @@ const Input = () => {
           className={style.input}
           id="word_search_input"
           onFocus={() => {
-            dispatch({ isTyping: true });
+            setIsTyping(true);
+          }}
+          onBlur={() => {
+            if (userInput === '') {
+              setIsTyping(false);
+            }
           }}
           value={userInput}
           onChange={(e) => {
@@ -113,65 +154,47 @@ const Input = () => {
         <span className={style.searchBtnBox}>
           <PrimaryButton
             onClick={() => {
-              searchHanlder<Array<RealTimeSuggest>>(
-                {
-                  source: source.token,
-                  resultHanlder(result, searchWord) {
-                    const validWord = result.find(
-                      (word) => {
-                        return word.word === searchWord;
-                      }
-                    );
+              const searchResultHandler: SearchResultHandler =
+                function (suggests, searchWord) {
+                  const validWord = findItem(
+                    suggests,
+                    (suggest) => suggest.word === searchWord
+                  );
 
-                    const invalidWord: SuggestDetail = {
-                      _type: '_invalid',
-                      suggests: result,
-                      word: searchWord,
-                    };
+                  const invalidWord: SuggestDetail = {
+                    _type: '_invalid',
+                    word: searchWord,
+                    suggests,
+                  };
 
-                    const SearchResult =
-                      validWord || invalidWord;
+                  const currentSearchResult =
+                    validWord || invalidWord;
 
-                    dispatch({
-                      searchResult: {
-                        '[[_data_]]': SearchResult,
-                      },
-                      history: {
-                        '[[_data_]]': {
-                          lastSearch: SearchResult,
-                          pasts: [SearchResult],
-                        },
-                        mapper(
-                          { pasts },
-                          newHistoryEntries
-                        ) {
-                          return {
-                            ...newHistoryEntries,
-                            pasts: [
-                              ...(pasts || []),
-                              ...(newHistoryEntries.pasts ||
-                                []),
-                            ],
-                          };
-                        },
-                      },
-                    });
-                    navigate('/results');
-                  },
-                },
-                () => {}
-              );
+                  dispatch(
+                    mergeHistory(currentSearchResult)
+                  );
+                  navigate('/results');
+                };
+
+              suggestResolver({
+                handler: searchResultHandler,
+                source: source.token,
+                options: { ignoreError: true },
+              });
             }}
           >
             Search
           </PrimaryButton>
         </span>
       </div>
-      {suggests && suggests.length && userInput ? (
+      {currentSuggests &&
+      currentSuggests.length &&
+      userInput ? (
         <AutoSuggest
           inputId="word_search_input"
           isVisible={isTyping}
-          suggests={suggests}
+          suggests={currentSuggests}
+          setIsTyping={setIsTyping}
         />
       ) : null}
     </div>

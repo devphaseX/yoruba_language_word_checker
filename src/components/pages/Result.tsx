@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import useGlobalState from '../../hooks/useGlobalState';
 import Input from '../input/Input';
 import Navigation from '../navigation/Navigation';
@@ -12,8 +12,7 @@ const Result: FC = () => {
   const navigate = useNavigate();
 
   if (!state.searchResult) {
-    navigate('/');
-    return null;
+    return <Navigate to="/"></Navigate>;
   }
 
   return (

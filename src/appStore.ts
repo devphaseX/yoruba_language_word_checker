@@ -1,5 +1,9 @@
-import { SuggestResult as SuggestWord } from './components/types';
+import {
+  fallbackDataResolver,
+  StateReplacement,
+} from './components/utils';
 import { createStore } from './store';
+import { mergeArray } from './components/utils/index';
 
 export type SearchMode = (
   | { _type: 'light' }
@@ -14,11 +18,9 @@ export interface GlobalState {
   isHistoryOpen: boolean;
   isModalOpen: boolean;
   appConfig: AppConfig;
-  isTyping: boolean;
   searchResult: null | SuggestDetail;
   searchedWord?: string;
   history: SearchHistory;
-  suggests: Array<RealTimeSuggest> | null;
 }
 
 export type ValidSuggest = { _type: '_valid' };
@@ -49,13 +51,42 @@ export const store = createStore<GlobalState>({
     searchMode: { mode: { _type: 'light', status: true } },
     allowPersist: false,
   },
-  isTyping: false,
   searchResult: null,
   history: {
     lastSearch: null,
     pasts: [],
   },
-  suggests: null,
 });
 
 export type InferStoreShape = typeof store;
+
+export function mergeHistoryPast(
+  { pasts }: SearchHistory,
+  currentHistory: SearchHistory
+) {
+  const currentPasts = mergeArray(
+    fallbackDataResolver(pasts, 'array'),
+    fallbackDataResolver(currentHistory.pasts, 'array')
+  );
+  return {
+    ...currentHistory,
+    pasts: currentPasts,
+  };
+}
+
+export function mergeHistory(
+  currentSearchResult: SuggestDetail
+): StateReplacement<GlobalState> {
+  return {
+    searchResult: {
+      '[[_data_]]': currentSearchResult,
+    },
+    history: {
+      '[[_data_]]': {
+        lastSearch: currentSearchResult,
+        pasts: [currentSearchResult],
+      },
+      mapper: mergeHistoryPast,
+    },
+  };
+}

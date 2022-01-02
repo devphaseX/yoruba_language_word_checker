@@ -3,6 +3,7 @@ import useGlobalState from '../../hooks/useGlobalState';
 import useLocalStorage, {
   APP_CONFIG_KEY,
   APP_HISTORY_KEY,
+  useLocalStorageFeature,
 } from '../../hooks/useLocalStorage';
 import style from '../../styles/settingModal.module.css';
 import {
@@ -28,13 +29,11 @@ const Setting = () => {
     allowPersist: prevAllowedPersist,
   } = appConfig;
   let dispatch = useGlobalDispatch();
-  const {
-    removeFromLocalStorage: removeLocalConfig,
-    persistToLocalStorage,
-  } = useLocalStorage<AppConfig>(APP_CONFIG_KEY);
 
-  const { removeFromLocalStorage: removeLocalHistory } =
-    useLocalStorage(APP_HISTORY_KEY);
+  const {
+    remove: removeLocalSaveData,
+    persist: persistLocalSaveData,
+  } = useLocalStorageFeature();
 
   const dispatchWithLocal: DispatchWithLocalFunction =
     function (config: Partial<AppConfig>, options) {
@@ -43,7 +42,9 @@ const Setting = () => {
 
       dispatch(
         { appConfig: config },
-        { persistToLocal: !!justAllowedPersist }
+        {
+          localStorageOption: { history: APP_HISTORY_KEY },
+        }
       );
 
       if (
@@ -63,10 +64,10 @@ const Setting = () => {
           changedConfig
         );
 
-        persistToLocalStorage(newAppConfig);
+        persistLocalSaveData(newAppConfig, APP_CONFIG_KEY);
       } else if (forceRemove) {
-        removeLocalConfig();
-        removeLocalHistory();
+        removeLocalSaveData(APP_CONFIG_KEY);
+        removeLocalSaveData(APP_HISTORY_KEY);
       }
     };
 
