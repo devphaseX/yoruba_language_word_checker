@@ -6,13 +6,19 @@ const useLocalStorage = <Data>(dataId: string) => {
   let { persist: _persist, remove: _remove } =
     useLocalStorageFeature();
 
-  const persist = useCallback(function persist(data: Data) {
-    _persist(data, dataId);
-  }, []);
+  const persist = useCallback(
+    function persist(data: Data) {
+      _persist(data, dataId);
+    },
+    [_persist, dataId]
+  );
 
-  const remove = useCallback(function remove() {
-    _remove(dataId);
-  }, []);
+  const remove = useCallback(
+    function remove() {
+      _remove(dataId);
+    },
+    [_remove, dataId]
+  );
 
   useEffect(() => {
     try {

@@ -70,6 +70,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     style[status],
     statusMessageOption.current.hideConnectionStatusMsg,
   ];
+  //set the back online message when user connection transist from offline to online
   currentMessage = statusMessageOption.current
     .shouldShowBackOnlineMsg
     ? backOnlineMessage

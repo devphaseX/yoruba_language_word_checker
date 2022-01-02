@@ -1,6 +1,6 @@
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import useGlobalState from '../../hooks/useGlobalState';
-import useLocalStorage, {
+import {
   APP_CONFIG_KEY,
   APP_HISTORY_KEY,
   useLocalStorageFeature,
