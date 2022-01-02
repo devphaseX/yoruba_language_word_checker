@@ -24,7 +24,8 @@ import { unwrappedData } from '../utils/index';
 import useNetworkStatus from '../../hooks/useNetwork';
 
 function getRealTimeSuggests(
-  searchResult: Array<SuggestResult>
+  searchResult: Array<SuggestResult>,
+  searchWord: string
 ) {
   const sortUsingProbability = (
     suggests: Array<SuggestResult>
@@ -34,19 +35,51 @@ function getRealTimeSuggests(
   const pickTopFiveSuggest = (
     suggests: Array<SuggestResult>
   ) => {
-    return takeFromList(suggests, 0, 5);
+    return takeFromList(suggests, 0, 7);
   };
 
-  return pipe(
-    sortUsingProbability,
-    pickTopFiveSuggest
-  )(searchResult).map(
-    ([word, probability]): RealTimeSuggest => ({
+  let getSuggestsFromSearchWord = (
+    suggests: Array<SuggestResult>
+  ) => excludeSearchWordFromSuggest(suggests, searchWord);
+
+  function mapSuggestToReal([
+    word,
+    probability,
+  ]: SuggestResult): RealTimeSuggest {
+    return {
       _type: '_valid',
       probability,
       word,
-    })
+    };
+  }
+
+  return pipe(
+    getSuggestsFromSearchWord,
+    removeInvalidSuggest((suggest) => {
+      return !(suggest[0].length > searchWord.length);
+    }),
+    sortUsingProbability,
+    pickTopFiveSuggest
+  )(searchResult).map(mapSuggestToReal);
+}
+
+function excludeSearchWordFromSuggest(
+  suggest: Array<SuggestResult>,
+  searchWord: string
+) {
+  return suggest.filter(
+    ([suggestword]) => suggestword !== searchWord
   );
+}
+
+function removeInvalidSuggest(
+  suggestPasser: (suggest: SuggestResult) => boolean
+) {
+  return function suggestValidator(
+    suggests: Array<SuggestResult>
+  ) {
+    return suggests.filter(suggestPasser);
+  };
 }
 
 const Input = () => {
@@ -83,7 +116,6 @@ const Input = () => {
     source,
     options,
   }: SearchOption<E>) {
-    console.log(onlineStatus.status);
     if (userInput) {
       if (onlineStatus.status === 'online') {
         try {
@@ -96,7 +128,7 @@ const Input = () => {
             .then<Array<SuggestResult>>(unwrappedData);
 
           handler(
-            getRealTimeSuggests(searchResult),
+            getRealTimeSuggests(searchResult, userInput),
             userInput
           );
         } catch (e: any) {
