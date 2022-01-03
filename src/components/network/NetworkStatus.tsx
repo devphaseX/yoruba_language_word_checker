@@ -48,6 +48,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
         statusMessageOption.current.hideConnectionStatusMsg =
           'hide';
       }
+
       markTimerAsComplete(timerId);
       forceUpdate();
     }, ms);
@@ -69,12 +70,10 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
       : offlineStatusMessage;
   let backOnlineMessage = `connection is back, you are check for yoruba word.`;
 
-  if (
-    status !== statusMessageOption.current.status ||
-    statusMessageOption.current.initialRender
-  ) {
+  if (statusMessageOption.current.initialRender) {
     showConnectionOnStatusChange(5000);
   }
+
   const statusClasses = [
     style.statusBox,
     style[status],
@@ -129,6 +128,10 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
         status === 'online'
       ) {
         showBackOnlineMessage();
+      } else if (
+        status !== statusMessageOption.current.status
+      ) {
+        showConnectionOnStatusChange(5000);
       }
       statusMessageOption.current.status = status;
     }
