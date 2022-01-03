@@ -56,11 +56,37 @@ function getRealTimeSuggests(
   return pipe(
     getSuggestsFromSearchWord,
     removeInvalidSuggest((suggest) => {
-      return !(suggest[0].length > searchWord.length);
+      return (
+        suggest[0].length > searchWord.length &&
+        normalizeSubstringComparison(suggest[0], searchWord)
+      );
     }),
     sortUsingProbability,
     pickTopFiveSuggest
   )(searchResult).map(mapSuggestToReal);
+}
+
+function normalizeSubstringComparison(
+  longest: string,
+  short: string
+) {
+  function compareByChar(char1: string, char2: string) {
+    return (
+      char1
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '') ===
+      char2
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+    );
+  }
+
+  const longCharList = [...longest];
+  return [...short].every((char, i) => {
+    return compareByChar(char, longCharList[i]);
+  });
 }
 
 function excludeSearchWordFromSuggest(
