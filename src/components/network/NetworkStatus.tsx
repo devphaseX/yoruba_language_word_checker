@@ -106,7 +106,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
       forceUpdate();
       showConnectionOnStatusChange(5000);
       markTimerAsComplete(timerId);
-    }, 5000);
+    }, 2000);
 
     queueTimerId(timerId);
     forceUpdate();

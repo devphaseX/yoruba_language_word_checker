@@ -20,7 +20,7 @@ import {
   RealTimeSuggest,
   SuggestDetail,
 } from '../../appStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { unwrappedData } from '../utils/index';
 import useNetworkStatus from '../../hooks/useNetwork';
 
@@ -120,6 +120,7 @@ const Input = () => {
 
   const [userInput, setUserInput] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   interface SearchOptionConfig<E> {
     ignoreError: boolean;
@@ -232,6 +233,10 @@ const Input = () => {
                   dispatch(
                     mergeHistory(currentSearchResult)
                   );
+
+                  if (location.pathname === '/results') {
+                    setIsTyping(false);
+                  }
                   navigate('/results');
                 };
 
