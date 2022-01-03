@@ -15,6 +15,7 @@ interface StatusMessageOption {
   shouldShowBackOnlineMsg: boolean;
   hideConnectionStatusMsg: 'hide' | 'unhide';
   timersId?: Set<number>;
+  initialRender: boolean;
 }
 
 const NetworkStatus: FC<NetworkStatusProps> = ({
@@ -28,26 +29,29 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     status,
     shouldShowBackOnlineMsg: false,
     hideConnectionStatusMsg: 'unhide',
+    initialRender: true,
   });
 
-  function showConnectionOnStatusChange() {
-    if (status !== statusMessageOption.current.status) {
+  function showConnectionOnStatusChange(ms: number) {
+    const { hideConnectionStatusMsg } =
+      statusMessageOption.current;
+
+    if (hideConnectionStatusMsg === 'hide') {
       statusMessageOption.current.hideConnectionStatusMsg =
         'unhide';
-      checkLabelVisibility(5000);
-      statusMessageOption.current.status = status;
     }
-  }
-
-  function checkLabelVisibility(ms: number) {
-    if (status !== statusMessageOption.current.status) {
-      const timerId = window.setTimeout(() => {
+    const timerId = window.setTimeout(() => {
+      if (
+        statusMessageOption.current
+          .hideConnectionStatusMsg === 'unhide'
+      ) {
         statusMessageOption.current.hideConnectionStatusMsg =
           'hide';
-        forceUpdate();
-      }, ms);
-      queueTimerId(timerId);
-    }
+      }
+      markTimerAsComplete(timerId);
+      forceUpdate();
+    }, ms);
+    queueTimerId(timerId);
   }
 
   function queueTimerId(id: number) {
@@ -65,11 +69,19 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
       : offlineStatusMessage;
   let backOnlineMessage = `connection is back, you are check for yoruba word.`;
 
-  showConnectionOnStatusChange();
+  if (
+    status !== statusMessageOption.current.status ||
+    statusMessageOption.current.initialRender
+  ) {
+    showConnectionOnStatusChange(4000);
+  }
   const statusClasses = [
     style[status],
-    statusMessageOption.current.hideConnectionStatusMsg,
+    style[
+      statusMessageOption.current.hideConnectionStatusMsg
+    ],
   ];
+
   //set the back online message when user connection transist from offline to online
   currentMessage = statusMessageOption.current
     .shouldShowBackOnlineMsg
@@ -86,16 +98,17 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
   function showBackOnlineMessage() {
     statusMessageOption.current.shouldShowBackOnlineMsg =
       true;
-    forceUpdate();
 
     const timerId = window.setTimeout(() => {
       statusMessageOption.current.shouldShowBackOnlineMsg =
         false;
-
+      forceUpdate();
+      showConnectionOnStatusChange(5000);
       markTimerAsComplete(timerId);
     }, 5000);
 
     queueTimerId(timerId);
+    forceUpdate();
   }
 
   function unRegisterTimeout() {
@@ -103,6 +116,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     if (timersId) {
       return timersId.forEach((id) => {
         window.clearTimeout(id);
+        timersId.delete(id);
       });
     }
   }
@@ -110,13 +124,23 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
   useEffect(() => {
     if (statusMessageOption.current.status !== status) {
       if (
-        statusMessageOption.current.status === 'offline'
+        statusMessageOption.current.status === 'offline' &&
+        status === 'online'
       ) {
         showBackOnlineMessage();
+      } else if (
+        statusMessageOption.current.status === 'online'
+      ) {
+        showConnectionOnStatusChange(5000);
       }
+      statusMessageOption.current.status = status;
     }
     return unRegisterTimeout;
   }, [status]);
+
+  if (statusMessageOption.current.initialRender) {
+    statusMessageOption.current.initialRender = false;
+  }
 
   return (
     <div className={statusClasses.join(' ')}>

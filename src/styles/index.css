@@ -77,7 +77,3 @@ button {
   color: var(--light-grey);
   display: block;
 }
-.layout {
-  display: flex;
-  flex-direction: column;
-}
