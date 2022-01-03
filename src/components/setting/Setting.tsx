@@ -36,12 +36,16 @@ const Setting = () => {
   } = useLocalStorageFeature();
 
   const dispatchWithLocal: DispatchWithLocalFunction =
-    function (config: Partial<AppConfig>, options) {
+    function (
+      userChangedConfig: Partial<AppConfig>,
+      options
+    ) {
       let { forceRemove } = options ?? {};
-      const { allowPersist: justAllowedPersist } = config;
+      const { allowPersist: justAllowedPersist } =
+        userChangedConfig;
 
       dispatch(
-        { appConfig: config },
+        { appConfig: userChangedConfig },
         {
           localStorageOption: { history: APP_HISTORY_KEY },
         }
@@ -51,17 +55,15 @@ const Setting = () => {
         (prevAllowedPersist || justAllowedPersist) &&
         !forceRemove
       ) {
-        const changedConfig =
-          justAllowedPersist && !prevAllowedPersist
-            ? {
-                ...config,
-                allowPersist: justAllowedPersist,
-              }
-            : config;
+        const lastestConfig = {
+          ...userChangedConfig,
+          allowPersist:
+            justAllowedPersist || prevAllowedPersist,
+        };
 
         const newAppConfig = partialDeepStateUpdate(
           appConfig,
-          changedConfig
+          lastestConfig
         );
 
         persistLocalSaveData(newAppConfig, APP_CONFIG_KEY);

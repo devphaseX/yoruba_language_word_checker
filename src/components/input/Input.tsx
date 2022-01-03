@@ -10,6 +10,7 @@ import {
   descendingOrder,
   findItem,
   pipe,
+  popLastChar,
   sort,
   takeFromList,
 } from '../utils';
@@ -70,6 +71,11 @@ function normalizeSubstringComparison(
   longest: string,
   short: string
 ) {
+  const longCharList = [...longest];
+  return [...short].every((char, i) => {
+    return compareByChar(char, longCharList[i]);
+  });
+
   function compareByChar(char1: string, char2: string) {
     return (
       char1
@@ -82,11 +88,6 @@ function normalizeSubstringComparison(
         .replace(/\p{Diacritic}/gu, '')
     );
   }
-
-  const longCharList = [...longest];
-  return [...short].every((char, i) => {
-    return compareByChar(char, longCharList[i]);
-  });
 }
 
 function excludeSearchWordFromSuggest(
@@ -148,7 +149,7 @@ const Input = () => {
           const searchResult = await axios
             .post(
               '/api/search',
-              { search_word: userInput },
+              { search_word: popLastChar(userInput, 2) },
               { cancelToken: source }
             )
             .then<Array<SuggestResult>>(unwrappedData);

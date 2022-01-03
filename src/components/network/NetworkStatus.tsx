@@ -73,9 +73,10 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     status !== statusMessageOption.current.status ||
     statusMessageOption.current.initialRender
   ) {
-    showConnectionOnStatusChange(4000);
+    showConnectionOnStatusChange(5000);
   }
   const statusClasses = [
+    style.statusBox,
     style[status],
     style[
       statusMessageOption.current.hideConnectionStatusMsg
@@ -128,14 +129,17 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
         status === 'online'
       ) {
         showBackOnlineMessage();
-      } else if (
-        statusMessageOption.current.status === 'online'
-      ) {
-        showConnectionOnStatusChange(5000);
       }
       statusMessageOption.current.status = status;
     }
     return unRegisterTimeout;
+  }, [status]);
+
+  useEffect(() => {
+    document.documentElement.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   }, [status]);
 
   if (statusMessageOption.current.initialRender) {

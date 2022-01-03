@@ -1,23 +1,24 @@
+.statusBox {
+  padding: 5px 10px;
+  text-align: center;
+}
+
 .online {
   background-color: #00ff0028;
   color: green;
-  padding: 5px 10px;
-  text-align: center;
 }
 
 .offline {
-  background-color: #ff00003f;
+  background-color: #ff000033;
   color: #df0505;
-  padding: 5px 10px;
-  text-align: center;
 }
 
 .hide {
-  display: none;
-  padding: 5px 10px;
+  visibility: hidden;
 }
 
 .unhide {
+  visibility: visible;
   display: block;
   height: 100%;
 }

@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import ArrowUpIcon from '../UI/Icons/ArrowUpIcon';
 import style from '../../styles/suggests.module.css';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
@@ -31,8 +31,15 @@ const AutoSuggest: FC<AutoSuggestProps> = ({
 
   const dispatch = useGlobalDispatch();
   const navigate = useNavigate();
+  const suggestBox = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (suggestBox.current) {
+      suggestBox.current.scrollIntoView(true);
+    }
+  }, [suggests]);
   return (
-    <div className={className}>
+    <div className={className} ref={suggestBox}>
       <h4 className={style.suggested_word_title}>
         Suggested words
       </h4>

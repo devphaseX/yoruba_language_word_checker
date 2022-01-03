@@ -70,16 +70,18 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
           <span>{searchedWord.word}</span>
         </h2>
       </div>
-      <div className={style.suggestion_board}>
-        <h4 className={style.suggest_question}>
-          Do you mean?
-        </h4>
-        <div className={style.suggest_list}>
-          {sortedSuggestedWord.map((sug, i) => (
-            <span key={sug.word + i}>{sug.word}</span>
-          ))}
+      {sortedSuggestedWord.length ? (
+        <div className={style.suggestion_board}>
+          <h4 className={style.suggest_question}>
+            Do you mean?
+          </h4>
+          <div className={style.suggest_list}>
+            {sortedSuggestedWord.map((sug, i) => (
+              <span key={sug.word + i}>{sug.word}</span>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };

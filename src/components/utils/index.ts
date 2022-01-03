@@ -331,3 +331,13 @@ export function mergeArray<
 >(arrayOne: T, arrayTwo: U) {
   return [...arrayOne, ...arrayTwo];
 }
+
+export function popLastChar(
+  value: string,
+  threshold: number
+) {
+  let chars = [...value];
+  return (
+    chars.length > threshold ? chars.slice(0, -1) : chars
+  ).join('');
+}

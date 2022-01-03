@@ -14,7 +14,7 @@ import NetworkStatus from './components/network/NetworkStatus';
 const context = createContext<typeof store>(store);
 
 const offlineMsg = `oops!, we noticed your network connection is inactive, search feature only works on active network`;
-const onlineMsg = `you are connected.`;
+const onlineMsg = `you are connected to active network.`;
 export { context as AppContext };
 export default function App() {
   return (
