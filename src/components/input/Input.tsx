@@ -167,14 +167,7 @@ const Input = () => {
             getRealTimeSuggests(searchResult, userInput),
             userInput
           );
-        } catch (e: any) {
-          if (
-            !(options.ignoreError && options.errorHandler)
-          ) {
-            throw e;
-          }
-        }
-        return;
+        } catch (e: any) {}
       }
       alert(
         "Sorry you are currently offline. So the search function isn't working, check your connection."
