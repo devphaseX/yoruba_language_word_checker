@@ -63,6 +63,15 @@ function getRealTimeSuggests(
   )(searchResult).map(mapSuggestToReal);
 }
 
+function filterOutSearchword(
+  suggest: Array<RealTimeSuggest>,
+  searchWord: string
+) {
+  return suggest.filter(
+    ({ word: suggestword }) => suggestword !== searchWord
+  );
+}
+
 function prioritizeSearchWord(
   suggests: Array<SuggestResult>,
   suggestWord: string
@@ -137,7 +146,7 @@ const Input = () => {
     options: Partial<SearchOptionConfig<E>>;
   }
 
-  async function suggestResolver<E = unknown>({
+  async function checkSearchword<E = unknown>({
     handler,
     source,
     options,
@@ -175,7 +184,7 @@ const Input = () => {
   const source = axiosCall.CancelToken.source();
 
   useEffect(() => {
-    suggestResolver({
+    checkSearchword({
       handler: setCurrentSuggests,
       source: source.token,
       options: { ignoreError: true },
@@ -222,7 +231,10 @@ const Input = () => {
                   const invalidWord: SuggestDetail = {
                     _type: '_invalid',
                     word: searchWord,
-                    suggests,
+                    suggests: filterOutSearchword(
+                      suggests,
+                      searchWord
+                    ),
                   };
 
                   const currentSearchResult =
@@ -233,12 +245,12 @@ const Input = () => {
                   );
 
                   if (location.pathname === '/results') {
-                    setIsTyping(false);
+                    return void setIsTyping(false);
                   }
                   navigate('/results');
                 };
 
-              suggestResolver({
+              checkSearchword({
                 handler: searchResultHandler,
                 source: source.token,
                 options: { ignoreError: true },

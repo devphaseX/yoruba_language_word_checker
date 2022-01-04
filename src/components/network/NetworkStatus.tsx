@@ -25,7 +25,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
   onlineStatusMessage,
   offlineStatusMessage,
 }) => {
-  const { status } = useNetworkStatus();
+  const { status, isInternectActive } = useNetworkStatus();
   const forceUpdate = useForceUpdate();
 
   const statusMessageOption = useRef<StatusMessageOption>({
@@ -77,6 +77,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     status === 'online'
       ? onlineStatusMessage
       : offlineStatusMessage;
+
   let backOnlineMessage = `connection is back, you are check for yoruba word.`;
 
   const statusClasses = [

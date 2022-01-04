@@ -77,10 +77,7 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
             Do you mean?
           </h4>
           <div className={style.suggest_list}>
-            {excludeSearchWordFromSuggest(
-              sortedSuggestedWord,
-              searchedWord.word
-            ).map((sug, i) => (
+            {sortedSuggestedWord.map((sug, i) => (
               <span key={sug.word + i}>{sug.word}</span>
             ))}
           </div>
@@ -89,15 +86,6 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
     </div>
   );
 };
-
-function excludeSearchWordFromSuggest(
-  suggest: Array<RealTimeSuggest>,
-  searchWord: string
-) {
-  return suggest.filter(
-    ({ word: suggestword }) => suggestword !== searchWord
-  );
-}
 
 function ascendingOrder(a: number, b: number) {
   return a - b;

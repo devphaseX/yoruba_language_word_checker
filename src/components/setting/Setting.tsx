@@ -51,10 +51,10 @@ const Setting = () => {
         }
       );
 
-      if (
-        (prevAllowedPersist || justAllowedPersist) &&
-        !forceRemove
-      ) {
+      let isPersistAllowed =
+        prevAllowedPersist || justAllowedPersist;
+
+      if (isPersistAllowed && !forceRemove) {
         const lastestConfig = {
           ...userChangedConfig,
           allowPersist:

@@ -1,19 +1,45 @@
 import { useEffect, useState } from 'react';
+import axios from '../axios';
 
 export interface NetworkConnection {
   status: 'online' | 'offline';
+  isInternectActive: boolean;
 }
+
 const useNetworkStatus = () => {
   const [internetStatus, setInternetStatus] =
     useState<NetworkConnection>({
       status: navigator.onLine ? 'online' : 'offline',
+      isInternectActive: false,
     });
+
+  function testNetworkForConnective() {
+    return axios.post('/api/search', { search_word: 'a' });
+  }
 
   useEffect(() => {
     function networkStatusHandler({ type }: Event) {
-      setInternetStatus({
-        status: type as NetworkConnection['status'],
-      });
+      if (type === 'online') {
+        return testNetworkForConnective()
+          .then(() => {
+            setInternetStatus({
+              status: 'online',
+              isInternectActive: true,
+            });
+          })
+          .catch(() => {
+            appIsOffline();
+          });
+      } else {
+        appIsOffline();
+      }
+
+      function appIsOffline() {
+        setInternetStatus({
+          status: type as NetworkConnection['status'],
+          isInternectActive: false,
+        });
+      }
     }
     window.addEventListener('online', networkStatusHandler);
     window.addEventListener(
