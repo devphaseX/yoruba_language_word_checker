@@ -12,6 +12,7 @@ import {
   pipe,
   sort,
   takeFromList,
+  tap,
 } from '../utils';
 import { SuggestResult } from '../types';
 import {
@@ -52,7 +53,7 @@ function getRealTimeSuggests(
   return pipe(
     removeInvalidSuggest((suggest) => {
       return (
-        suggest[0].length > searchWord.length &&
+        suggest[0].length >= searchWord.length &&
         normalizeSubstringComparison(suggest[0], searchWord)
       );
     }),

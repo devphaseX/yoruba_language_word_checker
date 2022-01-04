@@ -383,3 +383,10 @@ export function terminableTimeout(
     window.clearTimeout(timer);
   };
 }
+
+export function tap<T>(trap: (v: T) => void) {
+  return function (value: T) {
+    trap(value);
+    return value;
+  };
+}
