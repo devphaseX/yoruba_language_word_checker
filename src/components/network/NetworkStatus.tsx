@@ -52,6 +52,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
       markTimerAsComplete(timerId);
       forceUpdate();
     }, ms);
+    forceUpdate();
     queueTimerId(timerId);
   }
 
@@ -69,10 +70,6 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
       ? onlineStatusMessage
       : offlineStatusMessage;
   let backOnlineMessage = `connection is back, you are check for yoruba word.`;
-
-  if (statusMessageOption.current.initialRender) {
-    showConnectionOnStatusChange(5000);
-  }
 
   const statusClasses = [
     style.statusBox,
@@ -102,13 +99,14 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     const timerId = window.setTimeout(() => {
       statusMessageOption.current.shouldShowBackOnlineMsg =
         false;
-      forceUpdate();
+
       showConnectionOnStatusChange(5000);
       markTimerAsComplete(timerId);
     }, 2000);
 
-    queueTimerId(timerId);
     forceUpdate();
+
+    queueTimerId(timerId);
   }
 
   function unRegisterTimeout() {
@@ -122,19 +120,16 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
   }
 
   useEffect(() => {
-    if (statusMessageOption.current.status !== status) {
-      if (
-        statusMessageOption.current.status === 'offline' &&
-        status === 'online'
-      ) {
-        showBackOnlineMessage();
-      } else if (
-        status !== statusMessageOption.current.status
-      ) {
-        showConnectionOnStatusChange(5000);
-      }
-      statusMessageOption.current.status = status;
+    if (
+      statusMessageOption.current.status === 'offline' &&
+      status === 'online'
+    ) {
+      showBackOnlineMessage();
+    } else {
+      showConnectionOnStatusChange(5000);
     }
+
+    statusMessageOption.current.status = status;
     return unRegisterTimeout;
   }, [status]);
 

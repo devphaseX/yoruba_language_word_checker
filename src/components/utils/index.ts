@@ -226,42 +226,57 @@ export function pipe<
   };
 }
 
-type PartialAppliedFn<A extends any[], R> = (
-  ...value: A
-) => R;
+type DropFirst<List extends any[]> = List extends [
+  any,
+  ...infer Filterate
+]
+  ? Filterate
+  : List;
 
-type PresetFunction<Args extends any[], R> = (
-  args: Args
-) => R;
-export function partialRight<A, R>(
-  fn: PresetFunction<[A], R>,
-  a: A
-): PartialAppliedFn<[A], R>;
-export function partialRight<A, B, R>(
-  fn: PresetFunction<[A, B], R>,
-  b: B
-): PartialAppliedFn<[A, B], R>;
-export function partialRight<A, B, C, R>(
-  fn: PresetFunction<[A, B, C], R>,
-  b: B,
-  c: C
-): PartialAppliedFn<[A, B, C], R>;
-export function partialRight<A, B, C, D, R>(
-  fn: PresetFunction<[A, B, C, D], R>,
-  b: B,
-  c: C,
-  d: D
-): PartialAppliedFn<[A, B, C, D], R>;
+type ExcludeSameItem<
+  Preset extends unknown[],
+  All extends unknown[]
+> = Preset['length'] extends 0
+  ? All
+  : ExcludeSameItem<DropFirst<Preset>, DropFirst<All>>;
 
-export function partialRight(
-  fn: PresetFunction<any, any>,
-  ...presets: any[]
-): PartialAppliedFn<any[], any> {
-  return function (...args) {
-    const fullArgs = [...args, ...presets];
-    return fn.apply(null, fullArgs as any);
+type PartialFn<A extends unknown[]> = (...args: A) => any;
+type PartialAppliedFn<
+  A extends unknown[],
+  P extends unknown[],
+  R
+> = (...rest: ExcludeSameItem<P, A>) => R;
+
+type PickFirstItem<A extends any[]> = A extends [
+  infer F,
+  ...any
+]
+  ? F
+  : unknown;
+
+type ReversedList<
+  A extends any[],
+  C extends any[] = []
+> = C['length'] extends A['length']
+  ? C
+  : ReversedList<A, [...C, PickFirstItem<A>]>;
+type PartialRightFn = <
+  A extends unknown[],
+  Fn extends PartialFn<A>,
+  PresetArgs extends ReversedList<Partial<A>>
+>(
+  fn: Fn,
+  ...preset: Partial<A>
+) => PartialAppliedFn<A, PresetArgs, ReturnType<Fn>>;
+
+export const partialRight: PartialRightFn = (
+  fn,
+  ...preset
+) => {
+  return function (...rest) {
+    return fn.apply(null);
   };
-}
+};
 
 function get<O extends Object, K extends keyof O>(
   o: O,
