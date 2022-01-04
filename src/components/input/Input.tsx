@@ -10,7 +10,6 @@ import {
   descendingOrder,
   findItem,
   pipe,
-  popLastChar,
   sort,
   takeFromList,
 } from '../utils';
@@ -39,10 +38,6 @@ function getRealTimeSuggests(
     return takeFromList(suggests, 0, 7);
   };
 
-  let getSuggestsFromSearchWord = (
-    suggests: Array<SuggestResult>
-  ) => excludeSearchWordFromSuggest(suggests, searchWord);
-
   function mapSuggestToReal([
     word,
     probability,
@@ -55,16 +50,28 @@ function getRealTimeSuggests(
   }
 
   return pipe(
-    getSuggestsFromSearchWord,
     removeInvalidSuggest((suggest) => {
       return (
         suggest[0].length > searchWord.length &&
         normalizeSubstringComparison(suggest[0], searchWord)
       );
     }),
+    (suggests) =>
+      prioritizeSearchWord(suggests, searchWord),
     sortUsingProbability,
     pickTopFiveSuggest
   )(searchResult).map(mapSuggestToReal);
+}
+
+function prioritizeSearchWord(
+  suggests: Array<SuggestResult>,
+  suggestWord: string
+) {
+  return suggests.map((suggest) =>
+    normalizeSubstringComparison(suggest[0], suggestWord)
+      ? [suggest[0], 1]
+      : suggest
+  ) as Array<SuggestResult>;
 }
 
 function normalizeSubstringComparison(
@@ -88,15 +95,6 @@ function normalizeSubstringComparison(
         .replace(/\p{Diacritic}/gu, '')
     );
   }
-}
-
-function excludeSearchWordFromSuggest(
-  suggest: Array<SuggestResult>,
-  searchWord: string
-) {
-  return suggest.filter(
-    ([suggestword]) => suggestword !== searchWord
-  );
 }
 
 function removeInvalidSuggest(

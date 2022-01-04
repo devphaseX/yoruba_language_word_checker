@@ -1,4 +1,5 @@
 import { SubscriberUpdateRequirement } from '../../store/type';
+import { SuggestResult } from '../types';
 import {
   PropertyKeyArray,
   SlicedGlobalState,
@@ -355,4 +356,30 @@ export function popLastChar(
   return (
     chars.length > threshold ? chars.slice(0, -1) : chars
   ).join('');
+}
+
+export function immutableSetOperation<T>(
+  operator: (set: Set<T>, value: number) => Set<T>
+) {
+  return function queueOperation(
+    id: number,
+    timerQueue: Set<T> | null
+  ) {
+    const lastestTimerQueue = cloneSet(timerQueue);
+    return operator(lastestTimerQueue, id);
+  };
+}
+
+function cloneSet<T>(value: Set<T> | null) {
+  return new Set(value);
+}
+
+export function terminableTimeout(
+  ms: number,
+  action: () => void
+) {
+  const timer = window.setTimeout(action, ms);
+  return () => {
+    window.clearTimeout(timer);
+  };
 }

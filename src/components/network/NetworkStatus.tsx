@@ -4,17 +4,20 @@ import useNetworkStatus, {
 } from '../../hooks/useNetwork';
 import style from '../../styles/networkStatus.module.css';
 import useForceUpdate from '../../hooks/useForceUpdate';
+import { immutableSetOperation } from '../utils/index';
 
 interface NetworkStatusProps {
   onlineStatusMessage: string;
   offlineStatusMessage: string;
 }
 
+type QueueId = number;
+
 interface StatusMessageOption {
   status: NetworkConnection['status'];
   shouldShowBackOnlineMsg: boolean;
-  hideConnectionStatusMsg: 'hide' | 'unhide';
-  timersId?: Set<number>;
+  visibilityStatus: 'hide' | 'unhide';
+  timersId: Set<QueueId> | null;
   initialRender: boolean;
 }
 
@@ -28,42 +31,47 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
   const statusMessageOption = useRef<StatusMessageOption>({
     status,
     shouldShowBackOnlineMsg: false,
-    hideConnectionStatusMsg: 'unhide',
+    visibilityStatus: 'unhide',
     initialRender: true,
+    timersId: null,
   });
 
   function showConnectionOnStatusChange(ms: number) {
-    const { hideConnectionStatusMsg } =
+    const { visibilityStatus, timersId } =
       statusMessageOption.current;
 
-    if (hideConnectionStatusMsg === 'hide') {
-      statusMessageOption.current.hideConnectionStatusMsg =
+    if (visibilityStatus === 'hide') {
+      statusMessageOption.current.visibilityStatus =
         'unhide';
     }
+
     const timerId = window.setTimeout(() => {
       if (
-        statusMessageOption.current
-          .hideConnectionStatusMsg === 'unhide'
+        statusMessageOption.current.visibilityStatus ===
+        'unhide'
       ) {
-        statusMessageOption.current.hideConnectionStatusMsg =
+        statusMessageOption.current.visibilityStatus =
           'hide';
       }
 
-      markTimerAsComplete(timerId);
+      statusMessageOption.current.timersId =
+        removeTimerIdFromQueue(timerId, timersId);
       forceUpdate();
     }, ms);
     forceUpdate();
-    queueTimerId(timerId);
+
+    statusMessageOption.current.timersId =
+      addTimerIdToQueue(timerId, timersId);
   }
 
-  function queueTimerId(id: number) {
-    const timersId = statusMessageOption.current.timersId;
-    return void (timersId
-      ? timersId.add(id)
-      : (statusMessageOption.current.timersId = new Set([
-          id,
-        ])));
-  }
+  const removeTimerIdFromQueue =
+    immutableSetOperation<QueueId>(
+      (queue, id) => (queue.delete(id), queue)
+    );
+
+  const addTimerIdToQueue = immutableSetOperation<QueueId>(
+    (queue, id) => queue.add(id)
+  );
 
   let currentMessage =
     status === 'online'
@@ -74,9 +82,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
   const statusClasses = [
     style.statusBox,
     style[status],
-    style[
-      statusMessageOption.current.hideConnectionStatusMsg
-    ],
+    style[statusMessageOption.current.visibilityStatus],
   ];
 
   //set the back online message when user connection transist from offline to online
@@ -85,38 +91,36 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     ? backOnlineMessage
     : currentMessage;
 
-  function markTimerAsComplete(timerId: number) {
-    const timerIds = statusMessageOption.current.timersId;
-    if (timerIds) {
-      return timerIds.delete(timerId);
-    }
-  }
-
   function showBackOnlineMessage() {
-    statusMessageOption.current.shouldShowBackOnlineMsg =
-      true;
+    const { current } = statusMessageOption;
+    current.shouldShowBackOnlineMsg = true;
 
     const timerId = window.setTimeout(() => {
       statusMessageOption.current.shouldShowBackOnlineMsg =
         false;
 
       showConnectionOnStatusChange(5000);
-      markTimerAsComplete(timerId);
+      current.timersId = removeTimerIdFromQueue(
+        timerId,
+        current.timersId
+      );
     }, 2000);
 
     forceUpdate();
 
-    queueTimerId(timerId);
+    statusMessageOption.current.timersId =
+      addTimerIdToQueue(timerId, current.timersId);
   }
 
   function unRegisterTimeout() {
-    const { timersId } = statusMessageOption.current;
-    if (timersId) {
-      return timersId.forEach((id) => {
+    const { current } = statusMessageOption;
+    if (current.timersId) {
+      return current.timersId.forEach((id) => {
         window.clearTimeout(id);
-        timersId.delete(id);
       });
     }
+
+    current.timersId = null;
   }
 
   useEffect(() => {
