@@ -150,7 +150,7 @@ const Input = () => {
           const searchResult = await axios
             .post(
               '/api/search',
-              { search_word: popLastChar(userInput, 2) },
+              { search_word: userInput },
               { cancelToken: source }
             )
             .then<Array<SuggestResult>>(unwrappedData);
