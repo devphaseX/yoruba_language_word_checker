@@ -6,11 +6,6 @@ import style from '../../styles/networkStatus.module.css';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import { immutableSetOperation } from '../utils/index';
 
-interface NetworkStatusProps {
-  onlineStatusMessage: string;
-  offlineStatusMessage: string;
-}
-
 type QueueId = number;
 
 interface StatusMessageOption {
@@ -26,12 +21,18 @@ interface ConnectionDetail {
 }
 
 type InternetStatus = 'active' | 'inactive';
-type ConnectionDetectDetail = {
+type OnlineStatus = {
   [online in `online_${InternetStatus}`]: ConnectionDetail;
-} & {
-  offline_inactive: ConnectionDetail;
+};
+
+type OfflineStatus = { offline_inactive: ConnectionDetail };
+type BackOnlineStatus = {
   back_online: ConnectionDetail;
 };
+
+type ConnectionDetectDetail = OnlineStatus &
+  OfflineStatus &
+  BackOnlineStatus;
 
 const connectionDetectDetail: ConnectionDetectDetail = {
   online_active: {
@@ -46,7 +47,7 @@ const connectionDetectDetail: ConnectionDetectDetail = {
 
   offline_inactive: {
     message:
-      'oops!, we noticed your network connection is inactive, search feature only works on active network',
+      'oops!, we noticed your network connection is inactive, search feature only works on active network !!!',
   },
   back_online: {
     message:
@@ -54,10 +55,7 @@ const connectionDetectDetail: ConnectionDetectDetail = {
   },
 };
 
-const NetworkStatus: FC<NetworkStatusProps> = ({
-  onlineStatusMessage,
-  offlineStatusMessage,
-}) => {
+const NetworkStatus: FC = () => {
   const { status, isInternectActive } = useNetworkStatus();
   const forceUpdate = useForceUpdate();
 
@@ -106,24 +104,29 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
     (queue, id) => queue.add(id)
   );
 
-  let currentMessage =
+  const internetStatus =
     status === 'online'
-      ? onlineStatusMessage
-      : offlineStatusMessage;
+      ? isInternectActive
+        ? 'active'
+        : 'inactive'
+      : 'inactive';
 
-  let backOnlineMessage = `connection is back, you are check for yoruba word.`;
+  let currentMessage: ConnectionDetail;
+  if (statusMessageOption.current.shouldShowBackOnlineMsg) {
+    currentMessage = connectionDetectDetail['back_online'];
+  } else {
+    currentMessage =
+      connectionDetectDetail[
+        `${status}_${internetStatus}` as keyof (OnlineStatus &
+          OfflineStatus)
+      ];
+  }
 
   const statusClasses = [
     style.statusBox,
     style[status],
     style[statusMessageOption.current.visibilityStatus],
   ];
-
-  //set the back online message when user connection transist from offline to online
-  currentMessage = statusMessageOption.current
-    .shouldShowBackOnlineMsg
-    ? backOnlineMessage
-    : currentMessage;
 
   function showBackOnlineMessage() {
     const { current } = statusMessageOption;
@@ -184,7 +187,7 @@ const NetworkStatus: FC<NetworkStatusProps> = ({
 
   return (
     <div className={statusClasses.join(' ')}>
-      {currentMessage}
+      {currentMessage.message}
     </div>
   );
 };

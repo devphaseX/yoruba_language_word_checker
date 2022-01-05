@@ -398,3 +398,12 @@ export function filter<T, U extends T>(
     return suggests.filter(predicate);
   };
 }
+
+// export function inValidateSuggest(
+//   suggest: SuggestResult
+// ): suggest is SuggestResult {
+//   return (
+//     suggest[0].length >= searchWord.length &&
+//     normalizeSubstringComparison(suggest[0], searchWord)
+//   );
+// }

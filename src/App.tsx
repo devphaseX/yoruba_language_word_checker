@@ -19,10 +19,7 @@ export { context as AppContext };
 export default function App() {
   return (
     <div className="app" id="me">
-      <NetworkStatus
-        offlineStatusMessage={offlineMsg}
-        onlineStatusMessage={onlineMsg}
-      />
+      <NetworkStatus />
       <context.Provider value={store}>
         <BrowserRouter>
           <Layout>

@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import axios from '../../axios';
 import {
   descendingOrder,
-  filter,
   findItem,
   pipe,
   sort,
@@ -48,15 +47,6 @@ function getRealTimeSuggests(
     };
   }
 
-  function inValidateSuggest(
-    suggest: SuggestResult
-  ): suggest is SuggestResult {
-    return (
-      suggest[0].length >= searchWord.length &&
-      normalizeSubstringComparison(suggest[0], searchWord)
-    );
-  }
-
   function rankSearchWordAsTop(
     suggests: Array<SuggestResult>
   ) {
@@ -64,10 +54,9 @@ function getRealTimeSuggests(
   }
 
   return pipe(
-    filter(inValidateSuggest),
     rankSearchWordAsTop,
     sortUsingProbability,
-    pickSuggestOfSize(5)
+    pickSuggestOfSize(8)
   )(searchResult).map(mapSuggestToReal);
 }
 
@@ -85,7 +74,11 @@ function prioritizeSuggest(
   prioritizeWord: string
 ) {
   return suggests.map((suggest) =>
-    normalizeSubstringComparison(suggest[0], prioritizeWord)
+    normalizeSubstringComparison(
+      suggest[0],
+      prioritizeWord,
+      true
+    )
       ? [suggest[0], 1]
       : suggest
   ) as Array<SuggestResult>;
@@ -93,12 +86,15 @@ function prioritizeSuggest(
 
 function normalizeSubstringComparison(
   longest: string,
-  short: string
+  short: string,
+  strictEqual?: boolean
 ) {
   const longCharList = [...longest];
   return [...short].every((char, i) => {
     return compareByChar(char, longCharList[i]);
-  });
+  }) && strictEqual
+    ? longest.length === short.length
+    : true;
 
   function compareByChar(char1: string, char2: string) {
     return (
