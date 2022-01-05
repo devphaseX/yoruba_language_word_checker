@@ -13,11 +13,25 @@ const useNetworkStatus = () => {
       isInternectActive: false,
     });
 
+  const [isMount, setIsMount] = useState(false);
+
   function testNetworkForConnective() {
     return axios.post('/api/search', { search_word: 'a' });
   }
 
+  if (!isMount) {
+    testNetworkForConnective().then(() => {
+      setInternetStatus({
+        status: 'online',
+        isInternectActive: true,
+      });
+    });
+  }
+
   useEffect(() => {
+    if (!isMount) {
+      setIsMount(true);
+    }
     function networkStatusHandler({ type }: Event) {
       if (type === 'online') {
         return testNetworkForConnective()

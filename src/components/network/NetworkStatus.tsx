@@ -174,7 +174,7 @@ const NetworkStatus: FC = () => {
 
     statusMessageOption.current.status = status;
     return unRegisterTimeout;
-  }, [status]);
+  }, [status, isInternectActive]);
 
   useEffect(() => {
     document.documentElement.scrollTo({
