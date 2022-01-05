@@ -35,7 +35,7 @@ const FoundResult: FC<FoundResultProps> = ({
   return (
     <div>
       <h3 className={style.resultMsg}>
-        We found the word in the dictionary
+        we couldn't find the searched word in our dictionary
       </h3>
       <div>
         <h2 className={style.searchKeyWord}>
