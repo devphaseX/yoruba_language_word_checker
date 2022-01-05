@@ -3,7 +3,7 @@ import style from '../../styles/input.module.css';
 import SearchIcon from '../UI/Icons/SearchIcon';
 import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import AutoSuggest from '../autoSuggest/AutoSuggest';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from '../../axios';
 import {
   descendingOrder,
@@ -161,22 +161,28 @@ const Input = () => {
             userInput
           );
         } catch (e: any) {}
+      } else {
+        alert(
+          "Sorry you are currently offline. So the search function isn't working, check your connection."
+        );
       }
-      alert(
-        "Sorry you are currently offline. So the search function isn't working, check your connection."
-      );
     }
   }
 
-  const { abort, signal } = new AbortController();
+  const abortController = useMemo(
+    () => new AbortController(),
+    [userInput]
+  );
 
   useEffect(() => {
     checkSearchword({
       handler: setCurrentSuggests,
-      signalAbort: signal,
+      signalAbort: abortController.signal,
     });
 
-    return abort;
+    return function () {
+      return abortController.abort();
+    };
   }, [userInput]);
 
   return (
@@ -239,7 +245,7 @@ const Input = () => {
 
               checkSearchword({
                 handler: searchResultHandler,
-                signalAbort: signal,
+                signalAbort: abortController.signal,
               });
             }}
           >
