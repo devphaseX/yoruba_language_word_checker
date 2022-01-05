@@ -5,7 +5,7 @@ const Search = () => {
     <div className="search">
       <div className="search-label">
         <span>Analyse yoruba language</span>
-        <span>word for missplet.</span>
+        <span>word for Misspelt.</span>
       </div>
       <Input />
     </div>

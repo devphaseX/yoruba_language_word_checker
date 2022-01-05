@@ -62,7 +62,7 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
   return (
     <div>
       <h3 className={style.resultMsg}>
-        We didn't found the word in the dictionary
+        We cannot find this word in our dictionary
       </h3>
       <div>
         <h2 className={style.searchKeyWord}>

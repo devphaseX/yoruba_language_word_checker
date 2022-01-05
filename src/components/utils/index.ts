@@ -216,6 +216,15 @@ export function pipe<A, B, C, D, E, F>(
   j: MappableFn<E, F>
 ): MappableFn<A, F>;
 
+export function pipe<A, B, C, D, E, F, G>(
+  f: MappableFn<A, B>,
+  g: MappableFn<B, C>,
+  h: MappableFn<C, D>,
+  i: MappableFn<D, E>,
+  j: MappableFn<E, F>,
+  k: MappableFn<F, G>
+): MappableFn<A, G>;
+
 export function pipe<
   Fns extends Array<MappableFn<any, any>>
 >(...fns: Fns): any {
@@ -225,58 +234,6 @@ export function pipe<
     }, fns[0].apply(null, args as any));
   };
 }
-
-type DropFirst<List extends any[]> = List extends [
-  any,
-  ...infer Filterate
-]
-  ? Filterate
-  : List;
-
-type ExcludeSameItem<
-  Preset extends unknown[],
-  All extends unknown[]
-> = Preset['length'] extends 0
-  ? All
-  : ExcludeSameItem<DropFirst<Preset>, DropFirst<All>>;
-
-type PartialFn<A extends unknown[]> = (...args: A) => any;
-type PartialAppliedFn<
-  A extends unknown[],
-  P extends unknown[],
-  R
-> = (...rest: ExcludeSameItem<P, A>) => R;
-
-type PickFirstItem<A extends any[]> = A extends [
-  infer F,
-  ...any
-]
-  ? F
-  : unknown;
-
-type ReversedList<
-  A extends any[],
-  C extends any[] = []
-> = C['length'] extends A['length']
-  ? C
-  : ReversedList<A, [...C, PickFirstItem<A>]>;
-type PartialRightFn = <
-  A extends unknown[],
-  Fn extends PartialFn<A>,
-  PresetArgs extends ReversedList<Partial<A>>
->(
-  fn: Fn,
-  ...preset: Partial<A>
-) => PartialAppliedFn<A, PresetArgs, ReturnType<Fn>>;
-
-export const partialRight: PartialRightFn = (
-  fn,
-  ...preset
-) => {
-  return function (...rest) {
-    return fn.apply(null);
-  };
-};
 
 function get<O extends Object, K extends keyof O>(
   o: O,
