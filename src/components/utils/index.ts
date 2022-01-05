@@ -390,3 +390,11 @@ export function tap<T>(trap: (v: T) => void) {
     return value;
   };
 }
+
+export function filter<T, U extends T>(
+  predicate: (suggest: T) => suggest is U
+) {
+  return function suggestValidator(suggests: Array<T>) {
+    return suggests.filter(predicate);
+  };
+}

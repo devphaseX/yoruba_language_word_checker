@@ -21,6 +21,39 @@ interface StatusMessageOption {
   initialRender: boolean;
 }
 
+interface ConnectionDetail {
+  message: string;
+}
+
+type InternetStatus = 'active' | 'inactive';
+type ConnectionDetectDetail = {
+  [online in `online_${InternetStatus}`]: ConnectionDetail;
+} & {
+  offline_inactive: ConnectionDetail;
+  back_online: ConnectionDetail;
+};
+
+const connectionDetectDetail: ConnectionDetectDetail = {
+  online_active: {
+    message:
+      "we noticed you are connected to a network, but the network isn't active.",
+  },
+
+  online_inactive: {
+    message:
+      'you are connected to a network, which is active.',
+  },
+
+  offline_inactive: {
+    message:
+      'oops!, we noticed your network connection is inactive, search feature only works on active network',
+  },
+  back_online: {
+    message:
+      'connection is back, you are check for yoruba word.',
+  },
+};
+
 const NetworkStatus: FC<NetworkStatusProps> = ({
   onlineStatusMessage,
   offlineStatusMessage,

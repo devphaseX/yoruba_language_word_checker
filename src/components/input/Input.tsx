@@ -5,14 +5,13 @@ import useGlobalDispatch from '../../hooks/useGlobalDispatch';
 import AutoSuggest from '../autoSuggest/AutoSuggest';
 import { useEffect, useState } from 'react';
 import axios from '../../axios';
-import axiosCall, { CancelToken } from 'axios';
 import {
   descendingOrder,
+  filter,
   findItem,
   pipe,
   sort,
   takeFromList,
-  tap,
 } from '../utils';
 import { SuggestResult } from '../types';
 import {
@@ -33,11 +32,10 @@ function getRealTimeSuggests(
   ) =>
     sort(suggests, (f, s) => descendingOrder(f[1], s[1]));
 
-  const pickTopFiveSuggest = (
-    suggests: Array<SuggestResult>
-  ) => {
-    return takeFromList(suggests, 0, 7);
-  };
+  const pickSuggestOfSize =
+    (size: number) => (suggests: Array<SuggestResult>) => {
+      return takeFromList(suggests, 0, size);
+    };
 
   function mapSuggestToReal([
     word,
@@ -50,17 +48,26 @@ function getRealTimeSuggests(
     };
   }
 
+  function inValidateSuggest(
+    suggest: SuggestResult
+  ): suggest is SuggestResult {
+    return (
+      suggest[0].length >= searchWord.length &&
+      normalizeSubstringComparison(suggest[0], searchWord)
+    );
+  }
+
+  function rankSearchWordAsTop(
+    suggests: Array<SuggestResult>
+  ) {
+    return prioritizeSuggest(suggests, searchWord);
+  }
+
   return pipe(
-    removeInvalidSuggest((suggest) => {
-      return (
-        suggest[0].length >= searchWord.length &&
-        normalizeSubstringComparison(suggest[0], searchWord)
-      );
-    }),
-    (suggests) =>
-      prioritizeSearchWord(suggests, searchWord),
+    filter(inValidateSuggest),
+    rankSearchWordAsTop,
     sortUsingProbability,
-    pickTopFiveSuggest
+    pickSuggestOfSize(5)
   )(searchResult).map(mapSuggestToReal);
 }
 
@@ -73,12 +80,12 @@ function filterOutSearchword(
   );
 }
 
-function prioritizeSearchWord(
+function prioritizeSuggest(
   suggests: Array<SuggestResult>,
-  suggestWord: string
+  prioritizeWord: string
 ) {
   return suggests.map((suggest) =>
-    normalizeSubstringComparison(suggest[0], suggestWord)
+    normalizeSubstringComparison(suggest[0], prioritizeWord)
       ? [suggest[0], 1]
       : suggest
   ) as Array<SuggestResult>;
@@ -107,16 +114,6 @@ function normalizeSubstringComparison(
   }
 }
 
-function removeInvalidSuggest(
-  suggestPasser: (suggest: SuggestResult) => boolean
-) {
-  return function suggestValidator(
-    suggests: Array<SuggestResult>
-  ) {
-    return suggests.filter(suggestPasser);
-  };
-}
-
 const Input = () => {
   const dispatch = useGlobalDispatch();
   const onlineStatus = useNetworkStatus();
@@ -143,14 +140,13 @@ const Input = () => {
   ) => void;
   interface SearchOption<E> {
     handler: SearchResultHandler;
-    source: CancelToken;
+    signalAbort: AbortSignal;
     options: Partial<SearchOptionConfig<E>>;
   }
 
   async function checkSearchword<E = unknown>({
     handler,
-    source,
-    options,
+    signalAbort,
   }: SearchOption<E>) {
     if (userInput) {
       if (onlineStatus.status === 'online') {
@@ -159,7 +155,7 @@ const Input = () => {
             .post(
               '/api/search',
               { search_word: userInput },
-              { cancelToken: source }
+              { signal: signalAbort }
             )
             .then<Array<SuggestResult>>(unwrappedData);
 
@@ -175,18 +171,16 @@ const Input = () => {
     }
   }
 
-  const source = axiosCall.CancelToken.source();
+  const { abort, signal } = new AbortController();
 
   useEffect(() => {
     checkSearchword({
       handler: setCurrentSuggests,
-      source: source.token,
+      signalAbort: signal,
       options: { ignoreError: true },
     });
 
-    return () => {
-      source.cancel();
-    };
+    return abort;
   }, [userInput]);
   return (
     <div className={style.outterInputBox}>
@@ -246,7 +240,7 @@ const Input = () => {
 
               checkSearchword({
                 handler: searchResultHandler,
-                source: source.token,
+                signalAbort: signal,
                 options: { ignoreError: true },
               });
             }}
