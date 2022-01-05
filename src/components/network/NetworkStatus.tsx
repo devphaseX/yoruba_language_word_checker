@@ -37,12 +37,12 @@ type ConnectionDetectDetail = OnlineStatus &
 const connectionDetectDetail: ConnectionDetectDetail = {
   online_active: {
     message:
-      "we noticed you are connected to a network, but the network isn't active.",
+      'you are connected to a network, which is active.',
   },
 
   online_inactive: {
     message:
-      'you are connected to a network, which is active.',
+      "we noticed you are connected to a network, but the network isn't active.",
   },
 
   offline_inactive: {
@@ -115,6 +115,7 @@ const NetworkStatus: FC = () => {
   if (statusMessageOption.current.shouldShowBackOnlineMsg) {
     currentMessage = connectionDetectDetail['back_online'];
   } else {
+    console.log(`${status}_${internetStatus}`);
     currentMessage =
       connectionDetectDetail[
         `${status}_${internetStatus}` as keyof (OnlineStatus &
@@ -166,6 +167,7 @@ const NetworkStatus: FC = () => {
       status === 'online'
     ) {
       showBackOnlineMessage();
+      console.log(isInternectActive);
     } else {
       showConnectionOnStatusChange(5000);
     }
