@@ -231,6 +231,8 @@ const Input = () => {
                   const currentSearchResult =
                     validWord || invalidWord;
 
+                  console.log(currentSearchResult);
+
                   const currentHistory = mergeHistory(
                     currentSearchResult
                   );

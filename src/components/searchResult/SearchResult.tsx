@@ -35,7 +35,7 @@ const FoundResult: FC<FoundResultProps> = ({
   return (
     <div>
       <h3 className={style.resultMsg}>
-        we couldn't find the searched word in our dictionary
+        {`we are able to match the word "${searchedWord.word.toLocaleUpperCase()}" in our dictionary`}
       </h3>
       <div>
         <h2 className={style.searchKeyWord}>
@@ -62,7 +62,7 @@ const NotFoundResult: FC<NotFoundResultProps> = ({
   return (
     <div>
       <h3 className={style.resultMsg}>
-        We cannot find this word in our dictionary
+        we couldn't find the searched word in our dictionary
       </h3>
       <div>
         <h2 className={style.searchKeyWord}>
