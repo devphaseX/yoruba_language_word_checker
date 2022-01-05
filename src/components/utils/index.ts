@@ -1,5 +1,4 @@
 import { SubscriberUpdateRequirement } from '../../store/type';
-import { SuggestResult } from '../types';
 import {
   PropertyKeyArray,
   SlicedGlobalState,
@@ -391,19 +390,20 @@ export function tap<T>(trap: (v: T) => void) {
   };
 }
 
-export function filter<T, U extends T>(
-  predicate: (suggest: T) => suggest is U
-) {
-  return function suggestValidator(suggests: Array<T>) {
-    return suggests.filter(predicate);
-  };
+interface FilterFn<I, O extends I = I> {
+  (suggest: Array<I>): O extends I ? Array<I> : Array<O>;
 }
 
-// export function inValidateSuggest(
-//   suggest: SuggestResult
-// ): suggest is SuggestResult {
-//   return (
-//     suggest[0].length >= searchWord.length &&
-//     normalizeSubstringComparison(suggest[0], searchWord)
-//   );
-// }
+export function filter<T>(
+  predicate: (suggest: T) => unknown
+): FilterFn<T, T>;
+export function filter<T, S extends T>(
+  predicate: (suggest: T) => suggest is S
+): FilterFn<T, S>;
+export function filter<T, S extends T>(
+  predicate: (suggest: T) => unknown
+): FilterFn<T, S> {
+  return function (suggests) {
+    return suggests.filter(predicate) as any;
+  };
+}

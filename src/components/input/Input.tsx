@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import axios from '../../axios';
 import {
   descendingOrder,
+  filter,
   findItem,
   pipe,
   sort,
@@ -54,18 +55,18 @@ function getRealTimeSuggests(
   }
 
   return pipe(
+    removeWordWithCharLength(2),
     rankSearchWordAsTop,
     sortUsingProbability,
     pickSuggestOfSize(8)
   )(searchResult).map(mapSuggestToReal);
 }
 
-function filterOutSearchword(
-  suggest: Array<RealTimeSuggest>,
-  searchWord: string
-) {
-  return suggest.filter(
-    ({ word: suggestword }) => suggestword !== searchWord
+function removeWordWithCharLength(threshold: number) {
+  return filter(
+    (suggest: SuggestResult): suggest is SuggestResult => {
+      return [...suggest[0]].length > threshold;
+    }
   );
 }
 
@@ -137,7 +138,7 @@ const Input = () => {
   interface SearchOption<E> {
     handler: SearchResultHandler;
     signalAbort: AbortSignal;
-    options: Partial<SearchOptionConfig<E>>;
+    options?: Partial<SearchOptionConfig<E>>;
   }
 
   async function checkSearchword<E = unknown>({
@@ -173,11 +174,11 @@ const Input = () => {
     checkSearchword({
       handler: setCurrentSuggests,
       signalAbort: signal,
-      options: { ignoreError: true },
     });
 
     return abort;
   }, [userInput]);
+
   return (
     <div className={style.outterInputBox}>
       <div className={style.innerInputBox}>
@@ -215,18 +216,20 @@ const Input = () => {
                   const invalidWord: SuggestDetail = {
                     _type: '_invalid',
                     word: searchWord,
-                    suggests: filterOutSearchword(
-                      suggests,
-                      searchWord
-                    ),
+                    suggests: filter<RealTimeSuggest>(
+                      (suggest) =>
+                        suggest.word !== searchWord
+                    )(suggests),
                   };
 
                   const currentSearchResult =
                     validWord || invalidWord;
 
-                  dispatch(
-                    mergeHistory(currentSearchResult)
+                  const currentHistory = mergeHistory(
+                    currentSearchResult
                   );
+
+                  dispatch(currentHistory);
 
                   if (location.pathname === '/results') {
                     return void setIsTyping(false);
@@ -237,7 +240,6 @@ const Input = () => {
               checkSearchword({
                 handler: searchResultHandler,
                 signalAbort: signal,
-                options: { ignoreError: true },
               });
             }}
           >
